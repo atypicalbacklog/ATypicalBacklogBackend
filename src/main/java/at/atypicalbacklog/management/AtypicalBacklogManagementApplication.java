@@ -7,6 +7,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class AtypicalBacklogManagementApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(GamingTrackerApplication.class, args);
+        SpringApplication.run(AtypicalBacklogManagementApplication.class, args);
     }
 }
