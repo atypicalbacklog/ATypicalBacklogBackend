@@ -1,6 +1,7 @@
 ================================================================================
 ATYPICAL BACKLOG MANAGEMENT API - ENDPOINT CONTRACTS
 ================================================================================
+Version: 3
 Base URL: http://localhost:8080
 API Prefix: /api
 
@@ -222,6 +223,56 @@ Response: 200 OK
 }
 
 ================================================================================
+5. QUERY ENDPOINTS – GAME OVERVIEW
+================================================================================
+Base Path: /api/query/game-overview
+
+--------------------------------------------------------------------------------
+5.1 Game Overview Query
+--------------------------------------------------------------------------------
+Method: POST
+Path: /api/query/game-overview
+Content-Type: application/json
+
+Request Body:
+{
+  "searchText": "string" | null,           // optional; LIKE %text% on game name
+  "platformUids": [ "string" ] | null,     // optional; filter by platform UIDs
+  "consoleUids": [ "string" ] | null,      // optional; filter by console UIDs
+  "inBacklog": true | false | null,        // optional; filter by backlog state
+  "hasActivePlaythrough": true | false | null,  // optional
+  "completionStateUids": [ "string" ] | null,   // optional; filter by completion
+  "sortMode": "NAME_ASC" | "NAME_DESC" | "PLAYTIME_DESC" | "LAST_PLAYED_DESC"
+}
+
+SortMode enum:
+- NAME_ASC
+- NAME_DESC
+- PLAYTIME_DESC
+- LAST_PLAYED_DESC
+
+Response: 200 OK
+Array of GameOverviewRowDto:
+[
+  {
+    "gameUid": "string",
+    "gameInstanceUid": "string" | null,     // null if no instance exists
+    "hasInstance": true | false,
+    "gameName": "string",
+    "releaseYear": 2024 | null,
+    "platformUid": "string",
+    "platformName": "string",
+    "variantUid": "string",
+    "variantName": "string",
+    "inBacklog": true | false,
+    "hasActivePlaythrough": true | false,
+    "completionStateUid": "string" | null,
+    "totalPlaytimeSeconds": 0,
+    "thumbnailImageUid": "string" | null
+  }
+]
+
+================================================================================
 NOTES
 ================================================================================
 - All endpoints return JSON responses
@@ -233,5 +284,5 @@ NOTES
 - The API uses Spring Boot's default error handling
 
 ================================================================================
-Generated: 2026-01-24
+Generated: 2026-01-24  |  Document version: 3
 ================================================================================
