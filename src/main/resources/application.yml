@@ -1,11 +1,9 @@
 spring:
   application:
-    name: atypical-backlog-management
+    name: atypicalbacklog-management
 
   datasource:
     url: jdbc:postgresql://localhost:5432/postgres
-    username: postgres
-    password:
     driver-class-name: org.postgresql.Driver
 
   jpa:

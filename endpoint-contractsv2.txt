@@ -1,0 +1,237 @@
+================================================================================
+ATYPICAL BACKLOG MANAGEMENT API - ENDPOINT CONTRACTS
+================================================================================
+Base URL: http://localhost:8080
+API Prefix: /api
+
+================================================================================
+1. GAME ENDPOINTS
+================================================================================
+Base Path: /api/games
+
+--------------------------------------------------------------------------------
+1.1 Create Game
+--------------------------------------------------------------------------------
+Method: POST
+Path: /api/games
+Content-Type: application/json
+
+Request Body:
+{
+  "name": "string",
+  "firstReleaseDate": "YYYY-MM-DD"  // LocalDate format
+}
+
+Response: 200 OK
+{
+  "uid": "string",
+  "name": "string",
+  "firstReleaseDate": "YYYY-MM-DD"
+}
+
+--------------------------------------------------------------------------------
+1.2 Get Game by UID
+--------------------------------------------------------------------------------
+Method: GET
+Path: /api/games/{uid}
+
+Path Parameters:
+- uid (string): Unique identifier of the game
+
+Response: 200 OK
+{
+  "uid": "string",
+  "name": "string",
+  "firstReleaseDate": "YYYY-MM-DD"
+}
+
+--------------------------------------------------------------------------------
+1.3 Update Game
+--------------------------------------------------------------------------------
+Method: PUT
+Path: /api/games/{uid}
+Content-Type: application/json
+
+Path Parameters:
+- uid (string): Unique identifier of the game
+
+Request Body:
+{
+  "name": "string",
+  "firstReleaseDate": "YYYY-MM-DD"  // LocalDate format
+}
+
+Response: 200 OK
+{
+  "uid": "string",
+  "name": "string",
+  "firstReleaseDate": "YYYY-MM-DD"
+}
+
+================================================================================
+2. GAME INSTANCE ENDPOINTS
+================================================================================
+Base Path: /api/game-instances
+
+--------------------------------------------------------------------------------
+2.1 Create Game Instance
+--------------------------------------------------------------------------------
+Method: POST
+Path: /api/game-instances
+Content-Type: application/json
+
+Request Body:
+{
+  "gameUid": "string",
+  "platformUid": "string",
+  "variantUid": "string",
+  "receivedDate": "YYYY-MM-DD"  // LocalDate format
+}
+
+Response: 200 OK
+{
+  "uid": "string",
+  "gameUid": "string",
+  "platformUid": "string",
+  "variantUid": "string"
+}
+
+--------------------------------------------------------------------------------
+2.2 Get Game Instance by UID
+--------------------------------------------------------------------------------
+Method: GET
+Path: /api/game-instances/{uid}
+
+Path Parameters:
+- uid (string): Unique identifier of the game instance
+
+Response: 200 OK
+{
+  "uid": "string",
+  "gameUid": "string",
+  "platformUid": "string",
+  "variantUid": "string"
+}
+
+--------------------------------------------------------------------------------
+2.3 Update Game Instance
+--------------------------------------------------------------------------------
+Method: PUT
+Path: /api/game-instances/{uid}
+Content-Type: application/json
+
+Path Parameters:
+- uid (string): Unique identifier of the game instance
+
+Request Body:
+{
+  "gameUid": "string",
+  "platformUid": "string",
+  "variantUid": "string",
+  "receivedDate": "YYYY-MM-DD"  // LocalDate format
+}
+
+Response: 200 OK
+{
+  "uid": "string",
+  "gameUid": "string",
+  "platformUid": "string",
+  "variantUid": "string"
+}
+
+================================================================================
+3. PLAY SESSION ENDPOINTS
+================================================================================
+Base Path: /api/playthroughs/{playthroughUid}/sessions
+
+--------------------------------------------------------------------------------
+3.1 Start Play Session
+--------------------------------------------------------------------------------
+Method: POST
+Path: /api/playthroughs/{playthroughUid}/sessions/start
+
+Path Parameters:
+- playthroughUid (string): Unique identifier of the playthrough
+
+Response: 200 OK
+{
+  "timeBookingUid": "string",
+  "startedAt": "2024-01-01T12:00:00Z"  // ISO-8601 Instant format
+}
+
+--------------------------------------------------------------------------------
+3.2 Stop Play Session
+--------------------------------------------------------------------------------
+Method: POST
+Path: /api/playthroughs/{playthroughUid}/sessions/stop
+
+Path Parameters:
+- playthroughUid (string): Unique identifier of the playthrough
+
+Response: 200 OK
+{
+  "timeBookingUid": "string",
+  "startedAt": "2024-01-01T12:00:00Z" | null,  // ISO-8601 Instant format
+  "stoppedAt": "2024-01-01T13:00:00Z" | null,  // ISO-8601 Instant format
+  "durationSeconds": 3600  // long integer
+}
+
+================================================================================
+4. REFERENCE DATA ENDPOINTS
+================================================================================
+Base Path: /api/reference-data
+
+--------------------------------------------------------------------------------
+4.1 Get All Reference Data
+--------------------------------------------------------------------------------
+Method: GET
+Path: /api/reference-data
+
+Response: 200 OK
+{
+  "version": "string",           // e.g. "2026-01"
+  "generatedAt": "2024-01-01T12:00:00Z",  // ISO-8601 Instant
+  "data": {
+    "completionStates": [
+      { "uid": "string", "name": "string", "order": 0 }   // SimpleLookupDto
+    ],
+    "consoles": [
+      { "uid": "string", "name": "string", "fullname": "string" }   // ConsoleDto
+    ],
+    "platforms": [
+      {
+        "uid": "string",
+        "name": "string",
+        "consoleUid": "string",
+        "hideInChoices": true | false
+      }
+    ],
+    "inputs": [
+      { "uid": "string", "name": "string", "platformUid": "string" }   // InputDto
+    ],
+    "variants": [
+      { "uid": "string", "name": "string", "order": 0 }   // SimpleLookupDto
+    ],
+    "playthroughStates": [
+      { "uid": "string", "name": "string", "order": 0 }   // SimpleLookupDto
+    ],
+    "playthroughTypes": [
+      { "uid": "string", "name": "string", "order": 0 }   // SimpleLookupDto
+    ]
+  }
+}
+
+================================================================================
+NOTES
+================================================================================
+- All endpoints return JSON responses
+- Date formats:
+  * LocalDate: YYYY-MM-DD (e.g., "2024-01-15")
+  * Instant: ISO-8601 format with timezone (e.g., "2024-01-15T12:00:00Z")
+- All UIDs are string values
+- Error responses are not explicitly defined in the current implementation
+- The API uses Spring Boot's default error handling
+
+================================================================================
+Generated: 2026-01-24
+================================================================================
