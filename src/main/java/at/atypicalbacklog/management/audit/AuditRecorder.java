@@ -47,6 +47,8 @@ public class AuditRecorder {
                 toJson(changedData)
             );
 
+            System.err.println(entry.toString());
+
             repository.save(entry);
 
         } catch (Exception e) {

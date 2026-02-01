@@ -1,7 +1,7 @@
 ================================================================================
 ATYPICAL BACKLOG MANAGEMENT API - ENDPOINT CONTRACTS
 ================================================================================
-Version: 3
+Version: 5
 Base URL: http://localhost:8080
 API Prefix: /api
 
@@ -318,6 +318,89 @@ Array of GameOverviewRowDto:
 ]
 
 ================================================================================
+6. PLAYTHROUGH ENDPOINTS
+================================================================================
+Base Path: /api/playthroughs
+
+--------------------------------------------------------------------------------
+6.1 Create Playthrough
+--------------------------------------------------------------------------------
+Method: POST
+Path: /api/playthroughs
+Content-Type: application/json
+
+Request Body:
+{
+  "gameInstanceUid": "string",
+  "startedAt": "YYYY-MM-DD"              // LocalDate
+}
+
+Response: 200 OK
+{
+  "uid": "string",
+  "gameInstanceUid": "string",
+  "playthroughTypeUid": "string",
+  "inputUid": "string",
+  "startedAt": "YYYY-MM-DD",              // LocalDate
+  "playthroughStateUid": "string"
+}
+
+--------------------------------------------------------------------------------
+6.2 Update Playthrough
+--------------------------------------------------------------------------------
+Method: PUT
+Path: /api/playthroughs/{uid}
+Content-Type: application/json
+
+Path Parameters:
+- uid (string): Unique identifier of the playthrough
+
+Request Body:
+{
+  "playthroughTypeUid": "string",
+  "inputUid": "string",
+  "startedAt": "YYYY-MM-DD",              // LocalDate
+  "playthroughStateUid": "string"
+}
+
+Response: 200 OK
+{
+  "uid": "string",
+  "gameInstanceUid": "string",
+  "playthroughTypeUid": "string",
+  "inputUid": "string",
+  "startedAt": "YYYY-MM-DD",              // LocalDate
+  "playthroughStateUid": "string"
+}
+
+================================================================================
+7. QUERY ENDPOINTS – ACTIVE PLAYTHROUGHS
+================================================================================
+Base Path: /api/query/active-playthroughs
+
+--------------------------------------------------------------------------------
+7.1 Get Active Playthroughs Overview
+--------------------------------------------------------------------------------
+Method: GET
+Path: /api/query/active-playthroughs
+
+Response: 200 OK
+Array of ActivePlaythroughOverviewRow:
+[
+  {
+    "playthroughUid": "string",
+    "gameInstanceUid": "string",
+    "displayName": "string",
+    "thumbnailImageUid": "string",
+    "playthroughTypeUid": "string",
+    "inputUid": "string",
+    "playthroughStateUid": "string",
+    "isTimeTrackingActive": true | false,
+    "totalPlaytimeSeconds": 0
+  }
+]
+
+================================================================================
 NOTES
 ================================================================================
 - All endpoints return JSON responses
@@ -329,5 +412,5 @@ NOTES
 - The API uses Spring Boot's default error handling
 
 ================================================================================
-Generated: 2026-01-31  |  Document version: 4
+Generated: 2026-01-31  |  Document version: 5
 ================================================================================

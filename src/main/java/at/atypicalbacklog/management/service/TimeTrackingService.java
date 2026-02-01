@@ -11,12 +11,12 @@ import java.util.Map;
 import java.util.UUID;
 
 @Service
-public class PlaySessionService {
+public class TimeTrackingService {
 
     private final TimeBookingRepository repository;
     private final AuditRecorder auditRecorder;
 
-    public PlaySessionService(TimeBookingRepository repository, AuditRecorder auditRecorder) {
+    public TimeTrackingService(TimeBookingRepository repository, AuditRecorder auditRecorder) {
         this.repository = repository;
         this.auditRecorder = auditRecorder;
     }

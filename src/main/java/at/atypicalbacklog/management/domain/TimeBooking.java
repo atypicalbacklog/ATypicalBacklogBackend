@@ -2,7 +2,6 @@ package at.atypicalbacklog.management.domain;
 
 import jakarta.persistence.*;
 import java.time.Instant;
-import java.time.temporal.Temporal;
 
 @Entity
 @Table(name = "time_booking")

@@ -1,6 +1,6 @@
 package at.atypicalbacklog.management.controller;
 
-import at.atypicalbacklog.management.service.PlaySessionService;
+import at.atypicalbacklog.management.service.TimeTrackingService;
 import at.atypicalbacklog.management.domain.TimeBooking;
 import at.atypicalbacklog.management.dto.StartSessionResponse;
 import at.atypicalbacklog.management.dto.StopSessionResponse;
@@ -12,9 +12,9 @@ import java.time.Duration;
 @RequestMapping("/api/playthroughs/{playthroughUid}/sessions")
 public class PlaySessionController {
 
-    private final PlaySessionService service;
+    private final TimeTrackingService service;
 
-    public PlaySessionController(PlaySessionService service) {
+    public PlaySessionController(TimeTrackingService service) {
         this.service = service;
     }
 

@@ -1,6 +1,9 @@
 package at.atypicalbacklog.management.audit;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 import java.time.Instant;
 
 @Entity
@@ -25,15 +28,19 @@ public class HistoryLogEntry {
     @Column(nullable = false)
     private String changeType;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private String targetUids;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private String oldState;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private String newState;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private String changedData;
 
@@ -62,4 +69,13 @@ public class HistoryLogEntry {
         this.newState = newState;
         this.changedData = changedData;
     }
+
+    @Override
+    public String toString() {
+        return "HistoryLogEntry [uid=" + uid + ", createdAt=" + createdAt + ", requestId=" + requestId + ", intent="
+                + intent + ", affectedDomain=" + affectedDomain + ", changeType=" + changeType + ", targetUids="
+                + targetUids + ", oldState=" + oldState + ", newState=" + newState + ", changedData=" + changedData
+                + "]";
+    }
+    
 }
