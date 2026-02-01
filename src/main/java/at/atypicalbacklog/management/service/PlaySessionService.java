@@ -1,20 +1,24 @@
 package at.atypicalbacklog.management.service;
 
+import at.atypicalbacklog.management.audit.AuditRecorder;
 import at.atypicalbacklog.management.domain.TimeBooking;
 import at.atypicalbacklog.management.repository.TimeBookingRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
 public class PlaySessionService {
 
     private final TimeBookingRepository repository;
+    private final AuditRecorder auditRecorder;
 
-    public PlaySessionService(TimeBookingRepository repository) {
+    public PlaySessionService(TimeBookingRepository repository, AuditRecorder auditRecorder) {
         this.repository = repository;
+        this.auditRecorder = auditRecorder;
     }
 
     public TimeBooking startSession(String playthroughUid) {
@@ -29,7 +33,21 @@ public class PlaySessionService {
             Instant.now()
         );
 
-        return repository.save(booking);
+        TimeBooking result = repository.save(booking);
+        auditRecorder.record(
+            "Start Play Session",
+            "TimeBooking",
+            "CREATE",
+            Map.of(
+                "playthroughUid", playthroughUid,
+                "timeBookingUid", booking.getUid()
+            ),
+            null,
+            Map.of("startedAt", booking.getStartTime()),
+            null
+        );
+        
+        return result;
     }
 
     public Duration stopSession(String playthroughUid) {
@@ -40,8 +58,22 @@ public class PlaySessionService {
         Instant end = Instant.now();
         booking.stop(end);
         repository.save(booking);
+        Duration duration = Duration.between(booking.getStartTime(), end);
+        auditRecorder.record(
+            "Stop Play Session",
+            "TimeBooking",
+            "UPDATE",
+            Map.of("timeBookingUid", booking.getUid()),
+            null,
+            null,
+            Map.of(
+                "startedAt", booking.getStartTime(),
+                "stoppedAt", booking.getEndTime(),
+                "durationSeconds", duration.getSeconds()
+            )
+        );
 
-        return Duration.between(booking.getStartTime(), end);
+        return duration;
     }
 }
 

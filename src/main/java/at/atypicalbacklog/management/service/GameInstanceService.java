@@ -1,65 +1,113 @@
 package at.atypicalbacklog.management.service;
 
+import at.atypicalbacklog.management.audit.AuditRecorder;
 import at.atypicalbacklog.management.domain.GameInstance;
-import at.atypicalbacklog.management.dto.CreateGameInstanceRequest;
-import at.atypicalbacklog.management.dto.GameInstanceResponse;
+import at.atypicalbacklog.management.dto.*;
 import at.atypicalbacklog.management.repository.GameInstanceRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
 public class GameInstanceService {
 
     private final GameInstanceRepository repository;
+    private final AuditRecorder auditRecorder;
 
-    public GameInstanceService(GameInstanceRepository repository) {
+    public GameInstanceService(GameInstanceRepository repository, AuditRecorder auditRecorder) {
+        this.auditRecorder = auditRecorder;
         this.repository = repository;
     }
 
-    public GameInstanceResponse create(CreateGameInstanceRequest request) {
+    public GameInstanceResponse create(CreateGameInstanceRequest req) {
         GameInstance instance = new GameInstance(
             UUID.randomUUID().toString(),
-            request.gameUid(),
-            request.platformUid(),
-            request.variantUid(),
-            request.receivedDate()
+            Instant.now(),
+            req.name(),
+            req.releaseDate(),
+            req.gameUid(),
+            req.platformUid(),
+            req.originalConsoleUid(),
+            req.variantUid(),
+            req.receivedDate(),
+            Boolean.TRUE.equals(req.forFree()),
+            req.inPossession() == null || req.inPossession()
         );
 
         repository.save(instance);
+        auditRecorder.record(
+            "Create Game Instance",
+            "GameInstance",
+            "CREATE",
+            Map.of(
+                "gameInstanceUid", instance.getUid(),
+                "gameUid", instance.getGameUid()
+            ),
+            null,
+            instance,
+            null
+        );
+        
         return toResponse(instance);
     }
 
-    public GameInstanceResponse getById(String uid) {
-        GameInstance instance = repository.findById(uid)
-            .orElseThrow(() -> new IllegalArgumentException("GameInstance not found"));
-
-        return toResponse(instance);
-    }
-
-    public GameInstanceResponse update(String uid, CreateGameInstanceRequest request) {
+    public GameInstanceResponse update(String uid, UpdateGameInstanceRequest req) {
         GameInstance existing = repository.findById(uid)
             .orElseThrow(() -> new IllegalArgumentException("GameInstance not found"));
 
         GameInstance updated = new GameInstance(
             existing.getUid(),
-            request.gameUid(),
-            request.platformUid(),
-            request.variantUid(),
-            request.receivedDate()
+            existing.getCreationDate(),
+            req.name() != null ? req.name() : existing.getName(),
+            req.releaseDate() != null ? req.releaseDate() : existing.getReleaseDate(),
+            existing.getGameUid(),
+            req.platformUid() != null ? req.platformUid() : existing.getPlatformUid(),
+            req.originalConsoleUid() != null ? req.originalConsoleUid() : existing.getOriginalConsoleUid(),
+            req.variantUid() != null ? req.variantUid() : existing.getVariantUid(),
+            req.receivedDate() != null ? req.receivedDate() : existing.getReceivedDate(),
+            req.forFree() != null ? req.forFree() : existing.isForFree(),
+            req.inPossession() != null ? req.inPossession() : existing.isInPossession()
         );
 
         repository.save(updated);
+        auditRecorder.record(
+            "Update Game Instance Metadata",
+            "GameInstance",
+            "UPDATE",
+            Map.of("gameInstanceUid", existing.getUid()),
+            existing,
+            updated,
+            Map.of(
+                "name", req.name(),
+                "platformUid", req.platformUid(),
+                "variantUid", req.variantUid(),
+                "inPossession", req.inPossession()
+            )
+        );
+        
         return toResponse(updated);
     }
 
-    private GameInstanceResponse toResponse(GameInstance instance) {
+    public GameInstanceResponse getById(String uid) {
+        return repository.findById(uid)
+            .map(this::toResponse)
+            .orElseThrow(() -> new IllegalArgumentException("GameInstance not found"));
+    }
+
+    private GameInstanceResponse toResponse(GameInstance gi) {
         return new GameInstanceResponse(
-            instance.getUid(),
-            instance.getGameUid(),
-            instance.getPlatformUid(),
-            instance.getVariantUid()
+            gi.getUid(),
+            gi.getGameUid(),
+            gi.getPlatformUid(),
+            gi.getVariantUid(),
+            gi.getName(),
+            gi.getReleaseDate(),
+            gi.getOriginalConsoleUid(),
+            gi.getReceivedDate(),
+            gi.isForFree(),
+            gi.isInPossession()
         );
     }
 }
-

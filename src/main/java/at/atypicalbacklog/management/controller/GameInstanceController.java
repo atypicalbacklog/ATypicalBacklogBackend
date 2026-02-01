@@ -2,6 +2,7 @@ package at.atypicalbacklog.management.controller;
 
 import at.atypicalbacklog.management.dto.CreateGameInstanceRequest;
 import at.atypicalbacklog.management.dto.GameInstanceResponse;
+import at.atypicalbacklog.management.dto.UpdateGameInstanceRequest;
 import at.atypicalbacklog.management.service.GameInstanceService;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,7 +29,7 @@ public class GameInstanceController {
     @PutMapping("/{uid}")
     public GameInstanceResponse update(
         @PathVariable String uid,
-        @RequestBody CreateGameInstanceRequest request
+        @RequestBody UpdateGameInstanceRequest request
     ) {
         return service.update(uid, request);
     }

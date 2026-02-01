@@ -1,19 +1,23 @@
 package at.atypicalbacklog.management.dto.query;
 
-import java.time.Duration;
+import java.time.LocalDate;
 
 public record GameOverviewRowDto(
 
     // Identity
     String gameUid,
-    String gameInstanceUid,     // null if no instance exists
+    String gameInstanceUid,
     boolean hasInstance,
 
     // Game metadata
     String gameName,
-    Integer releaseYear,
+    LocalDate gameReleaseDate,
 
     // Instance metadata
+    String instanceName,
+    LocalDate instanceReleaseDate,
+    boolean inPossession,
+
     String platformUid,
     String platformName,
     String variantUid,

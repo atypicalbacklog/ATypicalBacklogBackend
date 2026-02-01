@@ -86,7 +86,14 @@ Request Body:
   "gameUid": "string",
   "platformUid": "string",
   "variantUid": "string",
-  "receivedDate": "YYYY-MM-DD"  // LocalDate format
+
+  "name": "string" | null,
+  "releaseDate": "YYYY-MM-DD" | null,
+  "originalConsoleUid": "string" | null,
+  "receivedDate": "YYYY-MM-DD" | null,
+
+  "forFree": true | false | null,
+  "inPossession": true | false | null
 }
 
 Response: 200 OK
@@ -94,7 +101,15 @@ Response: 200 OK
   "uid": "string",
   "gameUid": "string",
   "platformUid": "string",
-  "variantUid": "string"
+  "variantUid": "string",
+
+  "name": "string" | null,
+  "releaseDate": "YYYY-MM-DD" | null,
+  "originalConsoleUid": "string" | null,
+  "receivedDate": "YYYY-MM-DD" | null,
+
+  "forFree": true | false,
+  "inPossession": true | false
 }
 
 --------------------------------------------------------------------------------
@@ -111,7 +126,15 @@ Response: 200 OK
   "uid": "string",
   "gameUid": "string",
   "platformUid": "string",
-  "variantUid": "string"
+  "variantUid": "string",
+
+  "name": "string" | null,
+  "releaseDate": "YYYY-MM-DD" | null,
+  "originalConsoleUid": "string" | null,
+  "receivedDate": "YYYY-MM-DD" | null,
+
+  "forFree": true | false,
+  "inPossession": true | false
 }
 
 --------------------------------------------------------------------------------
@@ -126,10 +149,16 @@ Path Parameters:
 
 Request Body:
 {
-  "gameUid": "string",
-  "platformUid": "string",
-  "variantUid": "string",
-  "receivedDate": "YYYY-MM-DD"  // LocalDate format
+  "platformUid": "string" | null,
+  "variantUid": "string" | null,
+
+  "name": "string" | null,
+  "releaseDate": "YYYY-MM-DD" | null,
+  "originalConsoleUid": "string" | null,
+  "receivedDate": "YYYY-MM-DD" | null,
+
+  "forFree": true | false | null,
+  "inPossession": true | false | null
 }
 
 Response: 200 OK
@@ -137,7 +166,15 @@ Response: 200 OK
   "uid": "string",
   "gameUid": "string",
   "platformUid": "string",
-  "variantUid": "string"
+  "variantUid": "string",
+
+  "name": "string" | null,
+  "releaseDate": "YYYY-MM-DD" | null,
+  "originalConsoleUid": "string" | null,
+  "receivedDate": "YYYY-MM-DD" | null,
+
+  "forFree": true | false,
+  "inPossession": true | false
 }
 
 ================================================================================
@@ -258,15 +295,23 @@ Array of GameOverviewRowDto:
     "gameUid": "string",
     "gameInstanceUid": "string" | null,     // null if no instance exists
     "hasInstance": true | false,
+
     "gameName": "string",
-    "releaseYear": 2024 | null,
-    "platformUid": "string",
-    "platformName": "string",
-    "variantUid": "string",
-    "variantName": "string",
+    "gameReleaseDate": "YYYY-MM-DD" | null,
+
+    "instanceName": "string" | null,
+    "instanceReleaseDate": "YYYY-MM-DD" | null,
+    "inPossession": true | false,
+
+    "platformUid": "string" | null,
+    "platformName": "string" | null,
+    "variantUid": "string" | null,
+    "variantName": "string" | null,
+
     "inBacklog": true | false,
     "hasActivePlaythrough": true | false,
     "completionStateUid": "string" | null,
+
     "totalPlaytimeSeconds": 0,
     "thumbnailImageUid": "string" | null
   }
@@ -284,5 +329,5 @@ NOTES
 - The API uses Spring Boot's default error handling
 
 ================================================================================
-Generated: 2026-01-24  |  Document version: 3
+Generated: 2026-01-31  |  Document version: 4
 ================================================================================
