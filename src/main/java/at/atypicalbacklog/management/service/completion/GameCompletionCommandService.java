@@ -32,7 +32,7 @@ public class GameCompletionCommandService {
                 UUID.randomUUID().toString(),
                 req.gameInstanceUid(),
                 req.completionStateUid(),
-                null,
+                req.dlcUid(),
                 req.info()
             ));
 

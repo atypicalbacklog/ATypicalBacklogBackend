@@ -6,7 +6,7 @@ import at.atypicalbacklog.management.dto.playthrough.CreatePlaythroughRequest;
 import at.atypicalbacklog.management.dto.playthrough.PlaythroughResponse;
 import at.atypicalbacklog.management.dto.playthrough.UpdatePlaythroughRequest;
 import at.atypicalbacklog.management.service.playthrough.PlaythroughCommandService;
-import at.atypicalbacklog.management.service.playthrough.query.PlaythroughQueryService;
+import at.atypicalbacklog.management.service.query.PlaythroughQueryService;
 
 @RestController
 @RequestMapping("/api/playthroughs")
