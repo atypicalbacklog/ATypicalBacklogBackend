@@ -1,5 +1,6 @@
 package at.atypicalbacklog.management.service.query;
 
+import at.atypicalbacklog.management.dto.GameInstanceSummaryDto;
 import at.atypicalbacklog.management.dto.query.GameInstanceQueryResultDto;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,32 @@ public class GameInstanceQueryService {
         this.jdbc = jdbc;
     }
 
+    public List<GameInstanceSummaryDto> getInstancesByGameUid(String gameUid) {
+        String sql = """
+            SELECT
+              gi.uid,
+              gi.name,
+              img.uid AS cover_image_uid
+            FROM game_instance gi
+            LEFT JOIN game_image img
+              ON img.game_instance_uid = gi.uid
+             AND img.owner_type = 'GAME_INSTANCE'
+             AND img.type = 'COVER'
+             AND img.primary_image = true
+            WHERE gi.game_uid = :gameUid
+            ORDER BY gi.creation_date ASC
+            """;
+        return jdbc.query(sql, Map.of("gameUid", gameUid), this::mapSummaryRow);
+    }
+
+    private GameInstanceSummaryDto mapSummaryRow(ResultSet rs, int i) throws java.sql.SQLException {
+        return new GameInstanceSummaryDto(
+            rs.getString("uid"),
+            rs.getString("name"),
+            rs.getString("cover_image_uid")
+        );
+    }
+
     public List<GameInstanceQueryResultDto> search(String query) {
 
         String sql = """
@@ -24,7 +51,7 @@ public class GameInstanceQueryService {
               gi.uid,
               gi.name,
               gi.platform_uid,
-              img.uid AS thumbnail_uid
+              img.uid AS cover_image_uid
             FROM game_instance gi
             LEFT JOIN game_image img
               ON img.game_instance_uid = gi.uid
@@ -50,7 +77,7 @@ public class GameInstanceQueryService {
             rs.getString("uid"),
             rs.getString("name"),
             rs.getString("platform_uid"),
-            rs.getString("thumbnail_uid")
+            rs.getString("cover_image_uid")
         );
     }
 }

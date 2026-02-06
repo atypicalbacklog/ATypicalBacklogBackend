@@ -47,6 +47,7 @@ public class PlaythroughCommandService {
             Year.now().getValue(),
             activeStateUid
         );
+        pt.updateMetadata(req.playthroughTypeUid(), null, null, null);
 
         repository.save(pt);
 

@@ -7,7 +7,9 @@ import at.atypicalbacklog.management.repository.GameInstanceRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -54,6 +56,7 @@ public class GameInstanceService {
     }
 
     public GameInstanceResponse update(String uid, UpdateGameInstanceRequest req) {
+        Objects.requireNonNull(uid, "uid");
         GameInstance existing = repository.findById(uid)
             .orElseThrow(() -> new IllegalArgumentException("GameInstance not found"));
 
@@ -62,7 +65,7 @@ public class GameInstanceService {
             existing.getCreationDate(),
             req.name() != null ? req.name() : existing.getName(),
             req.releaseDate() != null ? req.releaseDate() : existing.getReleaseDate(),
-            existing.getGameUid(),
+            req.gameUid() != null ? req.gameUid() : existing.getGameUid(),
             req.platformUid() != null ? req.platformUid() : existing.getPlatformUid(),
             req.originalConsoleUid() != null ? req.originalConsoleUid() : existing.getOriginalConsoleUid(),
             req.variantUid() != null ? req.variantUid() : existing.getVariantUid(),
@@ -72,6 +75,13 @@ public class GameInstanceService {
         );
 
         repository.save(updated);
+        Map<String, Object> changedData = new HashMap<>();
+        changedData.put("gameInstanceUid", existing.getUid());
+        if (req.gameUid() != null) changedData.put("gameUid", req.gameUid());
+        if (req.name() != null) changedData.put("name", req.name());
+        if (req.platformUid() != null) changedData.put("platformUid", req.platformUid());
+        if (req.variantUid() != null) changedData.put("variantUid", req.variantUid());
+        if (req.inPossession() != null) changedData.put("inPossession", req.inPossession());
         auditRecorder.record(
             "Update Game Instance Metadata",
             "GameInstance",
@@ -79,18 +89,14 @@ public class GameInstanceService {
             Map.of("gameInstanceUid", existing.getUid()),
             existing,
             updated,
-            Map.of(
-                "name", req.name(),
-                "platformUid", req.platformUid(),
-                "variantUid", req.variantUid(),
-                "inPossession", req.inPossession()
-            )
+            changedData
         );
         
         return toResponse(updated);
     }
 
     public GameInstanceResponse getById(String uid) {
+        Objects.requireNonNull(uid, "uid");
         return repository.findById(uid)
             .map(this::toResponse)
             .orElseThrow(() -> new IllegalArgumentException("GameInstance not found"));

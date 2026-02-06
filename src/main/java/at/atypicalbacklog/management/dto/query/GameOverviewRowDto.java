@@ -32,6 +32,6 @@ public record GameOverviewRowDto(
     long totalPlaytimeSeconds,
 
     // Presentation hint
-    String thumbnailImageUid
+    String coverImageUid
 
 ) {}

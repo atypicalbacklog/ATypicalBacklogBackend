@@ -4,5 +4,5 @@ public record GameInstanceQueryResultDto(
     String gameInstanceUid,
     String name,
     String platformUid,
-    String thumbnailImageUid
+    String coverImageUid
 ) {}

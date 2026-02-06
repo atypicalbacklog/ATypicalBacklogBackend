@@ -6,5 +6,5 @@ public record GameQueryResultDto(
     String gameUid,
     String name,
     LocalDate releaseDate,
-    String thumbnailImageUid
+    String coverImageUid
 ) {}

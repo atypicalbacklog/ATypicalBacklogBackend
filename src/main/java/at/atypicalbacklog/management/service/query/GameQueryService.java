@@ -25,7 +25,7 @@ public class GameQueryService {
               g.uid,
               g.name_base,
               g.first_release_date,
-              img.uid AS thumbnail_uid
+              img.uid AS cover_image_uid
             FROM game g
             LEFT JOIN game_image img
               ON img.game_uid = g.uid
@@ -49,7 +49,7 @@ public class GameQueryService {
             rs.getString("uid"),
             rs.getString("name_base"),
             rs.getObject("first_release_date", LocalDate.class),
-            rs.getString("thumbnail_uid")
+            rs.getString("cover_image_uid")
         );
     }
 }

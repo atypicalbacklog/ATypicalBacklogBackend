@@ -6,4 +6,5 @@ import at.atypicalbacklog.management.domain.GameInstance;
 
 public interface GameInstanceRepository extends JpaRepository<GameInstance, String> {
 
+    java.util.List<GameInstance> findByGameUid(String gameUid);
 }

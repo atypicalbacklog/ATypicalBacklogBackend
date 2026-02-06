@@ -26,6 +26,6 @@ public record BacklogOverviewGameDto(
     List<BacklogOverviewInstanceDto> instances,
 
     // Presentation hint
-    String thumbnailImageUid
+    String coverImageUid
 
 ) {}

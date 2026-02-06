@@ -1,6 +1,7 @@
 package at.atypicalbacklog.management.dto.query.backlog;
 
 import java.time.LocalDate;
+import java.util.List;
 
 public record BacklogOverviewInstanceDto(
 
@@ -24,6 +25,15 @@ public record BacklogOverviewInstanceDto(
     String activePlaythroughUid,
 
     // Aggregates
-    long totalPlaytimeSeconds
+    long totalPlaytimeSeconds,
+
+    // Instance-specific cover (null if none)
+    String coverImageUid,
+
+    // All playthroughs (type, state, started_at)
+    List<BacklogOverviewPlaythroughDto> playthroughs,
+
+    // All DLCs (name)
+    List<String> dlcNames
 
 ) {}

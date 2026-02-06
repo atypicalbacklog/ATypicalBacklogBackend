@@ -17,7 +17,11 @@ import org.springframework.stereotype.Service;
 
 import at.atypicalbacklog.management.dto.query.backlog.BacklogOverviewGameDto;
 import at.atypicalbacklog.management.dto.query.backlog.BacklogOverviewInstanceDto;
+import at.atypicalbacklog.management.dto.query.backlog.BacklogOverviewPlaythroughDto;
 import at.atypicalbacklog.management.dto.query.backlog.BacklogOverviewQueryRequest;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
 public class BacklogOverviewQueryService {
@@ -70,7 +74,28 @@ public class BacklogOverviewQueryService {
                           ORDER BY img.creation_date DESC
                           LIMIT 1
                         )
-                      ) AS thumbnail_image_uid
+                      ) AS cover_image_uid,
+
+      (SELECT img.uid FROM game_image img
+       WHERE img.game_instance_uid = gi.uid
+         AND img.owner_type = 'GAME_INSTANCE'
+         AND img.type = 'COVER'
+       ORDER BY img.creation_date DESC
+       LIMIT 1) AS instance_cover_uid,
+
+      (SELECT COALESCE(json_agg(
+         json_build_object(
+           'playthroughTypeUid', pt.playthrough_type_uid,
+           'playthroughStateUid', pt.playthrough_state_uid,
+           'startedAt', pt.started_at
+         ) ORDER BY pt.started_at
+       ), '[]'::json)
+       FROM playthrough pt
+       WHERE pt.game_instance_uid = gi.uid) AS playthroughs_json,
+
+      (SELECT COALESCE(json_agg(d.name ORDER BY d.name), '[]'::json)
+       FROM dlc d
+       WHERE d.game_instance_uid = gi.uid) AS dlcs_json
 
     FROM backlog b
     JOIN game g ON g.uid = b.game_uid
@@ -137,6 +162,8 @@ public class BacklogOverviewQueryService {
         return result;
     }
 
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+
     private BacklogOverviewGameDto buildGame(List<Row> rows) {
 
         Row first = rows.get(0);
@@ -155,7 +182,10 @@ public class BacklogOverviewQueryService {
                 r.inPossession,
                 r.completionStateUid,
                 r.activePlaythroughUid,
-                r.totalPlaytimeSeconds
+                r.totalPlaytimeSeconds,
+                r.instanceCoverUid,
+                parsePlaythroughs(r.playthroughsJson),
+                parseDlcNames(r.dlcsJson)
             ))
             .toList();
 
@@ -172,7 +202,7 @@ public class BacklogOverviewQueryService {
             instances.stream().anyMatch(i -> i.activePlaythroughUid() != null),
             instances.stream().anyMatch(i -> i.activePlaythroughUid() != null),
             instances,
-            first.thumbnailImageUid
+            first.coverImageUid
         );
     }
 
@@ -209,6 +239,40 @@ public class BacklogOverviewQueryService {
         return score;
     }
 
+    private static List<BacklogOverviewPlaythroughDto> parsePlaythroughs(String json) {
+        if (json == null || json.isBlank() || "[]".equals(json.trim())) {
+            return List.of();
+        }
+        try {
+            JsonNode arr = MAPPER.readTree(json);
+            List<BacklogOverviewPlaythroughDto> list = new ArrayList<>();
+            for (JsonNode n : arr) {
+                list.add(new BacklogOverviewPlaythroughDto(
+                    n.has("playthroughTypeUid") && !n.get("playthroughTypeUid").isNull()
+                        ? n.get("playthroughTypeUid").asText() : null,
+                    n.has("playthroughStateUid") && !n.get("playthroughStateUid").isNull()
+                        ? n.get("playthroughStateUid").asText() : null,
+                    n.has("startedAt") && !n.get("startedAt").isNull()
+                        ? LocalDate.parse(n.get("startedAt").asText()) : null
+                ));
+            }
+            return List.copyOf(list);
+        } catch (Exception e) {
+            return List.of();
+        }
+    }
+
+    private static List<String> parseDlcNames(String json) {
+        if (json == null || json.isBlank() || "[]".equals(json.trim())) {
+            return List.of();
+        }
+        try {
+            return MAPPER.readValue(json, new TypeReference<List<String>>() {});
+        } catch (Exception e) {
+            return List.of();
+        }
+    }
+
     private Row mapRow(ResultSet rs, int i) throws java.sql.SQLException {
         return new Row(
             rs.getString("game_uid"),
@@ -229,7 +293,10 @@ public class BacklogOverviewQueryService {
             rs.getString("completion_state_uid"),
             rs.getString("active_playthrough_uid"),
             rs.getLong("total_playtime_seconds"),
-            rs.getString("thumbnail_image_uid")
+            rs.getString("cover_image_uid"),
+            rs.getString("instance_cover_uid"),
+            rs.getString("playthroughs_json"),
+            rs.getString("dlcs_json")
         );
     }
 
@@ -252,6 +319,9 @@ public class BacklogOverviewQueryService {
         String completionStateUid,
         String activePlaythroughUid,
         long totalPlaytimeSeconds,
-        String thumbnailImageUid
+        String coverImageUid,
+        String instanceCoverUid,
+        String playthroughsJson,
+        String dlcsJson
     ) {}
 }

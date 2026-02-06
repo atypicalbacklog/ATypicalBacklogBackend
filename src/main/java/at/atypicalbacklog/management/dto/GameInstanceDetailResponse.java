@@ -20,7 +20,9 @@ public record GameInstanceDetailResponse(
     boolean forFree,
     boolean inPossession,
 
-    // optional enrichments
-    BacklogInfoDto backlog,
+    String coverImageUid,
+
+    // optional enrichments: all backlog entries for this instance's game
+    List<BacklogInfoDto> backlogEntries,
     List<GameCompletionInfoDto> completions
 ) {}

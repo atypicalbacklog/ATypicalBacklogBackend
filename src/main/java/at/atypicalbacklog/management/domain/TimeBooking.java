@@ -48,5 +48,11 @@ public class TimeBooking {
         return uid;
     }
 
-    // getters
+    public Instant getCreationDate() {
+        return creationDate;
+    }
+
+    public String getPlaythroughUid() {
+        return playthroughUid;
+    }
 }

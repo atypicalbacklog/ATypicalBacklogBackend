@@ -82,7 +82,7 @@ public class GameOverviewQueryService {
                           ORDER BY img.creation_date DESC
                           LIMIT 1
                         )
-                      ) AS thumbnail_image_uid
+                      ) AS cover_image_uid
 
                     FROM game g
                     LEFT JOIN game_instance gi ON gi.game_uid = g.uid
@@ -146,7 +146,7 @@ public class GameOverviewQueryService {
                 rs.getString("completion_state_uid"),
 
                 rs.getLong("total_playtime_seconds"),
-                rs.getString("thumbnail_image_uid"));
+                rs.getString("cover_image_uid"));
     }
 
 }

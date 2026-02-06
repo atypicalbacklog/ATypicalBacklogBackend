@@ -3,6 +3,9 @@ package at.atypicalbacklog.management.dto;
 import java.time.LocalDate;
 
 public record UpdateGameInstanceRequest(
+    /** If set, instance is relinked to this game; if null, current game remains. */
+    String gameUid,
+
     String platformUid,
     String variantUid,
 

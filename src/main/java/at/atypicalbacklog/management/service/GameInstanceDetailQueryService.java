@@ -1,6 +1,8 @@
 package at.atypicalbacklog.management.service;
 
 import at.atypicalbacklog.management.domain.*;
+import at.atypicalbacklog.management.domain.image.ImageOwnerType;
+import at.atypicalbacklog.management.domain.image.ImageType;
 import at.atypicalbacklog.management.dto.*;
 import at.atypicalbacklog.management.dto.backlog.BacklogInfoDto;
 import at.atypicalbacklog.management.dto.completion.GameCompletionInfoDto;
@@ -8,6 +10,8 @@ import at.atypicalbacklog.management.repository.*;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 public class GameInstanceDetailQueryService {
@@ -15,23 +19,27 @@ public class GameInstanceDetailQueryService {
     private final GameInstanceRepository gameInstanceRepo;
     private final BacklogRepository backlogRepo;
     private final GameCompletionRepository completionRepo;
+    private final GameImageRepository imageRepo;
 
     public GameInstanceDetailQueryService(
         GameInstanceRepository gameInstanceRepo,
         BacklogRepository backlogRepo,
-        GameCompletionRepository completionRepo
+        GameCompletionRepository completionRepo,
+        GameImageRepository imageRepo
     ) {
         this.gameInstanceRepo = gameInstanceRepo;
         this.backlogRepo = backlogRepo;
         this.completionRepo = completionRepo;
+        this.imageRepo = imageRepo;
     }
 
     public GameInstanceDetailResponse getByUid(String uid) {
-
+        Objects.requireNonNull(uid, "uid");
         GameInstance gi = gameInstanceRepo.findById(uid)
             .orElseThrow(() -> new IllegalArgumentException("GameInstance not found"));
 
-        BacklogInfoDto backlog = resolveBacklog(gi.getGameUid());
+        String coverImageUid = resolveInstanceCoverImageUid(uid);
+        List<BacklogInfoDto> backlogEntries = resolveAllBacklogEntriesForGame(gi.getGameUid());
 
         List<GameCompletionInfoDto> completions =
             completionRepo.findByGameInstanceUidOrderByCreationDateAsc(uid)
@@ -56,23 +64,31 @@ public class GameInstanceDetailQueryService {
             gi.getReceivedDate(),
             gi.isForFree(),
             gi.isInPossession(),
-            backlog,
+            coverImageUid,
+            backlogEntries,
             completions
         );
     }
 
-    private BacklogInfoDto resolveBacklog(String gameUid) {
+    private String resolveInstanceCoverImageUid(String gameInstanceUid) {
+        return imageRepo
+            .findByOwnerTypeAndTypeAndGameInstanceUid(ImageOwnerType.GAME_INSTANCE, ImageType.COVER, gameInstanceUid)
+            .stream()
+            .filter(img -> img.isPrimaryImage())
+            .findFirst()
+            .map(img -> img.getUid())
+            .orElse(null);
+    }
 
-        return backlogRepo.findFirstByGameUidAndRemovedDateIsNull(gameUid)
-            .or(() ->
-                backlogRepo.findFirstByGameUidAndRemovedDateIsNotNullOrderByRemovedDateDesc(gameUid)
-            )
+    private List<BacklogInfoDto> resolveAllBacklogEntriesForGame(String gameUid) {
+        return backlogRepo.findByGameUidOrderByAddedDateDesc(gameUid)
+            .stream()
             .map(b -> new BacklogInfoDto(
                 b.getUid(),
                 b.getAddedDate(),
                 b.getRemovedDate(),
                 b.getReason()
             ))
-            .orElse(null);
+            .collect(Collectors.toList());
     }
 }

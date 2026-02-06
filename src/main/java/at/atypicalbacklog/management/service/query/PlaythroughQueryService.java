@@ -51,6 +51,7 @@ public class PlaythroughQueryService {
               pt.uid,
               pt.playthrough_state_uid,
               pt.playthrough_type_uid,
+              pt.input_uid,
               pt.started_at
             FROM playthrough pt
             WHERE pt.game_instance_uid = :uid
@@ -71,6 +72,7 @@ public class PlaythroughQueryService {
             rs.getString("uid"),
             rs.getString("playthrough_state_uid"),
             rs.getString("playthrough_type_uid"),
+            rs.getString("input_uid"),
             rs.getObject("started_at", LocalDate.class)
         );
     }

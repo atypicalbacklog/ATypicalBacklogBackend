@@ -6,5 +6,6 @@ public record PlaythroughQueryResultDto(
     String playthroughUid,
     String playthroughStateUid,
     String playthroughTypeUid,
+    String inputUid,
     LocalDate startedAt
 ) {}
