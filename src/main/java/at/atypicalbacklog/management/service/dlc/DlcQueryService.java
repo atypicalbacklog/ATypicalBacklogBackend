@@ -1,31 +1,51 @@
 package at.atypicalbacklog.management.service.dlc;
 
 import at.atypicalbacklog.management.dto.dlc.DlcResponse;
-import at.atypicalbacklog.management.repository.DlcRepository;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class DlcQueryService {
 
-    private final DlcRepository repository;
+    private final NamedParameterJdbcTemplate jdbc;
 
-    public DlcQueryService(DlcRepository repository) {
-        this.repository = repository;
+    public DlcQueryService(NamedParameterJdbcTemplate jdbc) {
+        this.jdbc = jdbc;
     }
 
     public List<DlcResponse> getByGameInstanceUid(String gameInstanceUid) {
-        return repository
-            .findByGameInstanceUidOrderByCreationDateAsc(gameInstanceUid)
-            .stream()
-            .map(dlc -> new DlcResponse(
-                dlc.getUid(),
-                dlc.getGameInstanceUid(),
-                dlc.getName(),
-                dlc.getReceivedDate(),
-                dlc.getPlaythroughUid()
-            ))
-            .toList();
+        String sql = """
+            SELECT
+              d.uid,
+              d.game_instance_uid,
+              d.name,
+              d.received_date,
+              d.release_date,
+              d.playthrough_uid,
+              gc.completion_state_uid
+            FROM dlc d
+            LEFT JOIN game_completion gc ON gc.dlc_uid = d.uid
+            WHERE d.game_instance_uid = :gameInstanceUid
+            ORDER BY d.creation_date ASC
+            """;
+        return jdbc.query(sql, Map.of("gameInstanceUid", gameInstanceUid), this::mapRow);
+    }
+
+    private DlcResponse mapRow(ResultSet rs, int rowNum) throws SQLException {
+        return new DlcResponse(
+            rs.getString("uid"),
+            rs.getString("game_instance_uid"),
+            rs.getString("name"),
+            rs.getObject("received_date", LocalDate.class),
+            rs.getObject("release_date", LocalDate.class),
+            rs.getString("playthrough_uid"),
+            rs.getString("completion_state_uid")
+        );
     }
 }

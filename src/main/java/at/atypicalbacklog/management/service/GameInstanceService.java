@@ -1,8 +1,11 @@
 package at.atypicalbacklog.management.service;
 
 import at.atypicalbacklog.management.audit.AuditRecorder;
+import at.atypicalbacklog.management.domain.GameCompletion;
 import at.atypicalbacklog.management.domain.GameInstance;
 import at.atypicalbacklog.management.dto.*;
+import at.atypicalbacklog.management.repository.CompletionStateRepository;
+import at.atypicalbacklog.management.repository.GameCompletionRepository;
 import at.atypicalbacklog.management.repository.GameInstanceRepository;
 import org.springframework.stereotype.Service;
 
@@ -16,11 +19,20 @@ import java.util.UUID;
 public class GameInstanceService {
 
     private final GameInstanceRepository repository;
+    private final GameCompletionRepository gameCompletionRepo;
+    private final CompletionStateRepository completionStateRepo;
     private final AuditRecorder auditRecorder;
 
-    public GameInstanceService(GameInstanceRepository repository, AuditRecorder auditRecorder) {
-        this.auditRecorder = auditRecorder;
+    public GameInstanceService(
+        GameInstanceRepository repository,
+        GameCompletionRepository gameCompletionRepo,
+        CompletionStateRepository completionStateRepo,
+        AuditRecorder auditRecorder
+    ) {
         this.repository = repository;
+        this.gameCompletionRepo = gameCompletionRepo;
+        this.completionStateRepo = completionStateRepo;
+        this.auditRecorder = auditRecorder;
     }
 
     public GameInstanceResponse create(CreateGameInstanceRequest req) {
@@ -39,6 +51,19 @@ public class GameInstanceService {
         );
 
         repository.save(instance);
+
+        String noneStateUid = completionStateRepo.findByNameIgnoreCase("None")
+            .orElseThrow(() -> new IllegalStateException("CompletionState 'None' not found"))
+            .getUid();
+        GameCompletion gc = new GameCompletion(
+            UUID.randomUUID().toString(),
+            instance.getUid(),
+            noneStateUid,
+            null,  // dlc_uid
+            null   // info
+        );
+        gameCompletionRepo.save(gc);
+
         auditRecorder.record(
             "Create Game Instance",
             "GameInstance",
@@ -75,6 +100,21 @@ public class GameInstanceService {
         );
 
         repository.save(updated);
+
+        if (gameCompletionRepo.findFirstByGameInstanceUidAndDlcUidIsNull(uid).isEmpty()) {
+            String noneStateUid = completionStateRepo.findByNameIgnoreCase("None")
+                .orElseThrow(() -> new IllegalStateException("CompletionState 'None' not found"))
+                .getUid();
+            GameCompletion gc = new GameCompletion(
+                UUID.randomUUID().toString(),
+                uid,
+                noneStateUid,
+                null,  // dlc_uid
+                null   // info
+            );
+            gameCompletionRepo.save(gc);
+        }
+
         Map<String, Object> changedData = new HashMap<>();
         changedData.put("gameInstanceUid", existing.getUid());
         if (req.gameUid() != null) changedData.put("gameUid", req.gameUid());

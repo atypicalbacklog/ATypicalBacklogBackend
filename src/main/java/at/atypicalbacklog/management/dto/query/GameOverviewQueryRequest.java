@@ -11,6 +11,9 @@ public record GameOverviewQueryRequest(
     Boolean inBacklog,
     Boolean hasActivePlaythrough,
     List<String> completionStateUids,
+    List<String> playthroughTypeUids,  // filter by playthrough type UIDs
+    Boolean includeDlc,                // when true, include DLC rows in result
+    Boolean onlyGamesWithDlc,          // when true, only games that have at least one DLC
 
     SortMode sortMode
 
@@ -19,6 +22,8 @@ public record GameOverviewQueryRequest(
         NAME_ASC,
         NAME_DESC,
         PLAYTIME_DESC,
-        LAST_PLAYED_DESC
+        LAST_PLAYED_DESC,
+        NEWEST_CREATED,
+        RELEASE_DATE
     }
 }

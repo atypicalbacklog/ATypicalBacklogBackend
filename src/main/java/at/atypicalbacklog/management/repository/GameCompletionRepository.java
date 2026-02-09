@@ -10,6 +10,7 @@ public interface GameCompletionRepository
     extends JpaRepository<GameCompletion, String> {
 
     Optional<GameCompletion> findFirstByGameInstanceUidAndDlcUidIsNull(String gameInstanceUid);
+    Optional<GameCompletion> findByDlcUid(String dlcUid);
     List<GameCompletion> findByGameInstanceUidOrderByCreationDateAsc(String gameInstanceUid);
 
 }

@@ -23,6 +23,9 @@ public class Dlc {
     @Column(name = "received_date")
     private LocalDate receivedDate;
 
+    @Column(name = "release_date")
+    private LocalDate releaseDate;
+
     @Column(name = "playthrough_uid")
     private String playthroughUid;
 
@@ -33,6 +36,7 @@ public class Dlc {
         String gameInstanceUid,
         String name,
         LocalDate receivedDate,
+        LocalDate releaseDate,
         String playthroughUid
     ) {
         this.uid = uid;
@@ -40,6 +44,17 @@ public class Dlc {
         this.gameInstanceUid = gameInstanceUid;
         this.name = name;
         this.receivedDate = receivedDate;
+        this.releaseDate = releaseDate;
+        this.playthroughUid = playthroughUid;
+    }
+
+    public void update(String name, LocalDate receivedDate, LocalDate releaseDate) {
+        if (name != null) this.name = name;
+        if (receivedDate != null) this.receivedDate = receivedDate;
+        if (releaseDate != null) this.releaseDate = releaseDate;
+    }
+
+    public void setPlaythroughUid(String playthroughUid) {
         this.playthroughUid = playthroughUid;
     }
 
@@ -49,5 +64,6 @@ public class Dlc {
     public String getGameInstanceUid() { return gameInstanceUid; }
     public String getName() { return name; }
     public LocalDate getReceivedDate() { return receivedDate; }
+    public LocalDate getReleaseDate() { return releaseDate; }
     public String getPlaythroughUid() { return playthroughUid; }
 }

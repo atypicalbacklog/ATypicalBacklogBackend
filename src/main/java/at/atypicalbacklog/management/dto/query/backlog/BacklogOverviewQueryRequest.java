@@ -5,7 +5,7 @@ import java.util.List;
 public record BacklogOverviewQueryRequest(
 
     /**
-     * Rough search on base game name (LIKE %text%)
+     * Rough search on game name and instance name (LIKE %text%)
      */
     String searchText,
 

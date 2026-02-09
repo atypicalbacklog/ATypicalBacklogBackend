@@ -27,6 +27,15 @@ public class DlcController {
         return commandService.create(req);
     }
 
+    /** Update DLC */
+    @PutMapping("/{uid}")
+    public DlcResponse update(
+        @PathVariable String uid,
+        @RequestBody UpdateDlcRequest req
+    ) {
+        return commandService.update(uid, req);
+    }
+
     /** Get DLCs by GameInstance UID */
     @GetMapping("/by-game-instance/{gameInstanceUid}")
     public List<DlcResponse> getByGameInstance(

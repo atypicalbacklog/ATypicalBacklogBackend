@@ -18,6 +18,7 @@ public class ReferenceDataService {
     private final VariantRepository variantRepo;
     private final PlaythroughStateRepository playthroughStateRepo;
     private final PlaythroughTypeRepository playthroughTypeRepo;
+    private final TierRepository tierRepo;
 
     public ReferenceDataService(
         CompletionStateRepository completionStateRepo,
@@ -26,7 +27,8 @@ public class ReferenceDataService {
         InputRepository inputRepo,
         VariantRepository variantRepo,
         PlaythroughStateRepository playthroughStateRepo,
-        PlaythroughTypeRepository playthroughTypeRepo
+        PlaythroughTypeRepository playthroughTypeRepo,
+        TierRepository tierRepo
     ) {
         this.completionStateRepo = completionStateRepo;
         this.consoleRepo = consoleRepo;
@@ -35,6 +37,7 @@ public class ReferenceDataService {
         this.variantRepo = variantRepo;
         this.playthroughStateRepo = playthroughStateRepo;
         this.playthroughTypeRepo = playthroughTypeRepo;
+        this.tierRepo = tierRepo;
     }
 
     public ReferenceDataResponse loadAll() {
@@ -80,6 +83,11 @@ public class ReferenceDataService {
                 playthroughTypeRepo.findAllByOrderByNameAsc()
                     .stream()
                     .map(e -> new SimpleLookupDto(e.getUid(), e.getName(), 0))
+                    .toList(),
+
+                tierRepo.findAllByOrderByNameAsc()
+                    .stream()
+                    .map(e -> new SimpleLookupDto(e.getUid(), e.getName(), e.getOrder()))
                     .toList()
             )
         );

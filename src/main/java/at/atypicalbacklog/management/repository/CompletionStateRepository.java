@@ -9,4 +9,6 @@ public interface CompletionStateRepository
     extends JpaRepository<CompletionState, String> {
 
     List<CompletionState> findAllByOrderByOrderAsc();
+    java.util.Optional<CompletionState> findByName(String name);
+    java.util.Optional<CompletionState> findByNameIgnoreCase(String name);
 }

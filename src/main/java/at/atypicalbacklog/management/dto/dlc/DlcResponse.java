@@ -7,5 +7,7 @@ public record DlcResponse(
     String gameInstanceUid,
     String name,
     LocalDate receivedDate,
-    String playthroughUid
+    LocalDate releaseDate,
+    String playthroughUid,
+    String completionStateUid
 ) {}

@@ -4,9 +4,13 @@ import java.time.LocalDate;
 
 public record GameOverviewRowDto(
 
+    // Row type: true = DLC row, false = instance row
+    boolean isDlc,
+
     // Identity
     String gameUid,
     String gameInstanceUid,
+    String dlcUid,           // non-null when isDlc
     boolean hasInstance,
 
     // Game metadata
@@ -16,6 +20,7 @@ public record GameOverviewRowDto(
     // Instance metadata
     String instanceName,
     LocalDate instanceReleaseDate,
+    LocalDate instanceReceivedDate,
     boolean inPossession,
 
     String platformUid,
@@ -23,15 +28,25 @@ public record GameOverviewRowDto(
     String variantUid,
     String variantName,
 
-    // Derived state
+    // Instance cover (game instance cover when available)
+    String instanceCoverImageUid,
+
+    // DLC-specific (null when instance row)
+    String dlcName,
+    LocalDate dlcReceivedDate,
+
+    // Derived state (from instance when instance row; from DLC playthrough when DLC row; null when DLC not linked)
     boolean inBacklog,
-    boolean hasActivePlaythrough,
+    Boolean hasActivePlaythrough,
     String completionStateUid,
 
-    // Aggregates
-    long totalPlaytimeSeconds,
+    // Aggregates (from instance or DLC playthrough; null when DLC not linked)
+    Long totalPlaytimeSeconds,
 
-    // Presentation hint
-    String coverImageUid
+    // Presentation: game/instance fallback cover
+    String coverImageUid,
+
+    // Instance has at least one DLC
+    boolean hasDlc
 
 ) {}

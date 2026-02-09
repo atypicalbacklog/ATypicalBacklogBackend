@@ -9,5 +9,6 @@ public record ReferenceDataPayload(
     List<InputDto> inputs,
     List<SimpleLookupDto> variants,
     List<SimpleLookupDto> playthroughStates,
-    List<SimpleLookupDto> playthroughTypes
+    List<SimpleLookupDto> playthroughTypes,
+    List<SimpleLookupDto> tiers
 ) {}

@@ -134,11 +134,49 @@ public class BacklogOverviewQueryService {
         Map<String, Object> params = new HashMap<>();
 
         if (req.searchText() != null) {
-            sql += " AND LOWER(g.name_base) LIKE LOWER(:search)";
+            sql += """
+                AND (
+                    LOWER(g.name_base) LIKE LOWER(:search)
+                    OR LOWER(gi.name) LIKE LOWER(:search)
+                )
+                """;
             params.put("search", "%" + req.searchText() + "%");
         }
 
-        // other filters omitted here for brevity but follow same pattern
+        if (req.consoleUids() != null && !req.consoleUids().isEmpty()) {
+            sql += """
+                AND (
+                    gi.original_console_uid IN (:consoleUids)
+                    OR p.console_uid IN (:consoleUids)
+                )
+                """;
+            params.put("consoleUids", req.consoleUids());
+        }
+
+        if (req.platformUids() != null && !req.platformUids().isEmpty()) {
+            sql += " AND p.uid IN (:platformUids)";
+            params.put("platformUids", req.platformUids());
+        }
+
+        if (req.hasActivePlaythrough() != null) {
+            if (Boolean.TRUE.equals(req.hasActivePlaythrough())) {
+                sql += " AND pt.uid IS NOT NULL";
+            } else {
+                sql += """
+                    AND NOT EXISTS (
+                        SELECT 1 FROM playthrough pt2
+                        JOIN playthrough_state ps2 ON ps2.uid = pt2.playthrough_state_uid
+                        JOIN game_instance gi2 ON gi2.uid = pt2.game_instance_uid
+                        WHERE gi2.game_uid = g.uid AND ps2.name = 'Active'
+                    )
+                    """;
+            }
+        }
+
+        if (req.completionStateUids() != null && !req.completionStateUids().isEmpty()) {
+            sql += " AND gc.completion_state_uid IN (:completionStateUids)";
+            params.put("completionStateUids", req.completionStateUids());
+        }
 
         List<Row> rows = jdbc.query(sql, params, this::mapRow);
 

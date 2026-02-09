@@ -6,5 +6,12 @@ public record CreateDlcRequest(
     String gameInstanceUid,
     String name,
     LocalDate receivedDate,
-    String playthroughUid
+    LocalDate releaseDate,  // required on creation
+    String playthroughUid,
+
+    /** Optional: completion state UID for the DLC's game_completion. */
+    String completionStateUid,
+
+    /** Optional: info text for the DLC's game_completion. */
+    String info
 ) {}
