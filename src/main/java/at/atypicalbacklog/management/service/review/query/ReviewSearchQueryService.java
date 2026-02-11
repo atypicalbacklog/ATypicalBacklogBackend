@@ -43,7 +43,8 @@ public class ReviewSearchQueryService {
 
               r.uid AS review_uid,
               r.review_date,
-              r.tier_uid
+              r.tier_uid,
+              r.text AS review_text
 
             FROM playthrough pt
             JOIN game_instance gi ON gi.uid = pt.game_instance_uid
@@ -97,7 +98,8 @@ public class ReviewSearchQueryService {
                         r.startedAt,
                         r.reviewUid,
                         r.reviewDate,
-                        r.tierUid
+                        r.tierUid,
+                        r.reviewText != null && !r.reviewText.isBlank()
                     ))
                     .toList()
             ));
@@ -115,7 +117,8 @@ public class ReviewSearchQueryService {
             rs.getObject("started_at", LocalDate.class),
             rs.getString("review_uid"),
             rs.getObject("review_date", LocalDate.class),
-            rs.getString("tier_uid")
+            rs.getString("tier_uid"),
+            rs.getString("review_text")
         );
     }
 
@@ -128,6 +131,7 @@ public class ReviewSearchQueryService {
         LocalDate startedAt,
         String reviewUid,
         LocalDate reviewDate,
-        String tierUid
+        String tierUid,
+        String reviewText
     ) {}
 }

@@ -25,13 +25,16 @@ public class GameQueryService {
               g.uid,
               g.name_base,
               g.first_release_date,
-              img.uid AS cover_image_uid
+              (
+                SELECT img.uid
+                FROM game_image img
+                WHERE img.game_uid = g.uid
+                  AND img.owner_type = 'GAME'
+                  AND img.type = 'COVER'
+                ORDER BY img.primary_image DESC NULLS LAST, img.creation_date DESC
+                LIMIT 1
+              ) AS cover_image_uid
             FROM game g
-            LEFT JOIN game_image img
-              ON img.game_uid = g.uid
-             AND img.owner_type = 'GAME'
-             AND img.type = 'COVER'
-             AND img.primary_image = true
             WHERE LOWER(g.name_base) LIKE LOWER(:q)
             ORDER BY g.name_base ASC
             LIMIT 20

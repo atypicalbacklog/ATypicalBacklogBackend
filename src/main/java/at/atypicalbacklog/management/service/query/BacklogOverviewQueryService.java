@@ -65,13 +65,13 @@ public class BacklogOverviewQueryService {
                         (
                           SELECT img.uid FROM game_image img
                           WHERE img.game_instance_uid = gi.uid
-                          ORDER BY img.creation_date DESC
+                          ORDER BY img.primary_image DESC NULLS LAST, img.creation_date DESC
                           LIMIT 1
                         ),
                         (
                           SELECT img.uid FROM game_image img
                           WHERE img.game_uid = g.uid
-                          ORDER BY img.creation_date DESC
+                          ORDER BY img.primary_image DESC NULLS LAST, img.creation_date DESC
                           LIMIT 1
                         )
                       ) AS cover_image_uid,
@@ -80,7 +80,7 @@ public class BacklogOverviewQueryService {
        WHERE img.game_instance_uid = gi.uid
          AND img.owner_type = 'GAME_INSTANCE'
          AND img.type = 'COVER'
-       ORDER BY img.creation_date DESC
+       ORDER BY img.primary_image DESC NULLS LAST, img.creation_date DESC
        LIMIT 1) AS instance_cover_uid,
 
       (SELECT COALESCE(json_agg(

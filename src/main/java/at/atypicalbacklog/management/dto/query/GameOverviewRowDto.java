@@ -33,7 +33,7 @@ public record GameOverviewRowDto(
 
     // DLC-specific (null when instance row)
     String dlcName,
-    LocalDate dlcReceivedDate,
+    LocalDate dlcReleaseDate,
 
     // Derived state (from instance when instance row; from DLC playthrough when DLC row; null when DLC not linked)
     boolean inBacklog,

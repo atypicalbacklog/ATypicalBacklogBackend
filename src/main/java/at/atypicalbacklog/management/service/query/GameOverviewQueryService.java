@@ -62,11 +62,11 @@ public class GameOverviewQueryService {
                WHERE img.game_instance_uid = gi.uid
                  AND img.owner_type = 'GAME_INSTANCE'
                  AND img.type = 'COVER'
-                 AND img.primary_image = true
+               ORDER BY img.primary_image DESC NULLS LAST, img.creation_date DESC
                LIMIT 1)                     AS instance_cover_image_uid,
 
               NULL::text                    AS dlc_name,
-              NULL::date                    AS dlc_received_date,
+              NULL::date                    AS dlc_release_date,
 
               EXISTS (
                 SELECT 1 FROM backlog b
@@ -102,10 +102,12 @@ public class GameOverviewQueryService {
               COALESCE(
                 (SELECT img.uid FROM game_image img
                  WHERE img.game_instance_uid = gi.uid
-                 ORDER BY img.creation_date DESC LIMIT 1),
+                 ORDER BY img.primary_image DESC NULLS LAST, img.creation_date DESC
+                 LIMIT 1),
                 (SELECT img.uid FROM game_image img
                  WHERE img.game_uid = g.uid
-                 ORDER BY img.creation_date DESC LIMIT 1)
+                 ORDER BY img.primary_image DESC NULLS LAST, img.creation_date DESC
+                 LIMIT 1)
               )                             AS cover_image_uid,
 
               EXISTS (
@@ -155,11 +157,11 @@ public class GameOverviewQueryService {
                WHERE img.game_instance_uid = gi.uid
                  AND img.owner_type = 'GAME_INSTANCE'
                  AND img.type = 'COVER'
-                 AND img.primary_image = true
+               ORDER BY img.primary_image DESC NULLS LAST, img.creation_date DESC
                LIMIT 1)                     AS instance_cover_image_uid,
 
               d.name                        AS dlc_name,
-              d.received_date               AS dlc_received_date,
+              d.release_date                AS dlc_release_date,
 
               EXISTS (
                 SELECT 1 FROM backlog b
@@ -195,10 +197,12 @@ public class GameOverviewQueryService {
               COALESCE(
                 (SELECT img.uid FROM game_image img
                  WHERE img.game_instance_uid = gi.uid
-                 ORDER BY img.creation_date DESC LIMIT 1),
+                 ORDER BY img.primary_image DESC NULLS LAST, img.creation_date DESC
+                 LIMIT 1),
                 (SELECT img.uid FROM game_image img
                  WHERE img.game_uid = g.uid
-                 ORDER BY img.creation_date DESC LIMIT 1)
+                 ORDER BY img.primary_image DESC NULLS LAST, img.creation_date DESC
+                 LIMIT 1)
               )                             AS cover_image_uid,
 
               true                          AS has_dlc,
@@ -425,7 +429,7 @@ public class GameOverviewQueryService {
                 rs.getString("instance_cover_image_uid"),
 
                 rs.getString("dlc_name"),
-                rs.getObject("dlc_received_date", LocalDate.class),
+                rs.getObject("dlc_release_date", LocalDate.class),
 
                 rs.getBoolean("in_backlog"),
                 rs.getObject("has_active_playthrough", Boolean.class),

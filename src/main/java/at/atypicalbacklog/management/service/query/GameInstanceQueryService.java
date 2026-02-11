@@ -23,13 +23,16 @@ public class GameInstanceQueryService {
             SELECT
               gi.uid,
               gi.name,
-              img.uid AS cover_image_uid
+              (
+                SELECT img.uid
+                FROM game_image img
+                WHERE img.game_instance_uid = gi.uid
+                  AND img.owner_type = 'GAME_INSTANCE'
+                  AND img.type = 'COVER'
+                ORDER BY img.primary_image DESC NULLS LAST, img.creation_date DESC
+                LIMIT 1
+              ) AS cover_image_uid
             FROM game_instance gi
-            LEFT JOIN game_image img
-              ON img.game_instance_uid = gi.uid
-             AND img.owner_type = 'GAME_INSTANCE'
-             AND img.type = 'COVER'
-             AND img.primary_image = true
             WHERE gi.game_uid = :gameUid
             ORDER BY gi.creation_date ASC
             """;
@@ -51,13 +54,16 @@ public class GameInstanceQueryService {
               gi.uid,
               gi.name,
               gi.platform_uid,
-              img.uid AS cover_image_uid
+              (
+                SELECT img.uid
+                FROM game_image img
+                WHERE img.game_instance_uid = gi.uid
+                  AND img.owner_type = 'GAME_INSTANCE'
+                  AND img.type = 'COVER'
+                ORDER BY img.primary_image DESC NULLS LAST, img.creation_date DESC
+                LIMIT 1
+              ) AS cover_image_uid
             FROM game_instance gi
-            LEFT JOIN game_image img
-              ON img.game_instance_uid = gi.uid
-             AND img.owner_type = 'GAME_INSTANCE'
-             AND img.type = 'COVER'
-             AND img.primary_image = true
             WHERE LOWER(gi.name) LIKE LOWER(:q)
             ORDER BY gi.name ASC
             LIMIT 20

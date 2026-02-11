@@ -10,5 +10,7 @@ public record PlaythroughWithReviewDto(
 
     String reviewUid,
     LocalDate reviewDate,
-    String tierUid
+    String tierUid,
+
+    boolean hasTextReview
 ) {}

@@ -5,5 +5,6 @@ import java.time.LocalDate;
 public record CreatePlaythroughRequest(
     String gameInstanceUid,
     LocalDate startedAt,
-    String playthroughTypeUid
+    String playthroughTypeUid,  // optional
+    String inputUid              // optional
 ) {}

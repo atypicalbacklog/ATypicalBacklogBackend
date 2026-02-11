@@ -5,6 +5,9 @@ import at.atypicalbacklog.management.repository.*;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class ReferenceDataService {
@@ -92,4 +95,93 @@ public class ReferenceDataService {
             )
         );
     }
+
+    /**
+     * Utility map for backend logic checks:
+     * key = platform UID, value = platform/console info (uids + names).
+     */
+    public Map<String, PlatformConsoleInfo> loadPlatformConsoleMap() {
+        var consolesByUid = consoleRepo.findAllByOrderByNameAsc()
+            .stream()
+            .collect(Collectors.toMap(
+                c -> c.getUid(),
+                c -> c
+            ));
+
+        Map<String, PlatformConsoleInfo> result = new HashMap<>();
+
+        platformRepo.findAllByOrderByNameAsc()
+            .forEach(p -> {
+                var console = consolesByUid.get(p.getConsoleUid());
+                result.put(
+                    p.getUid(),
+                    new PlatformConsoleInfo(
+                        p.getUid(),
+                        p.getName(),
+                        p.getConsoleUid(),
+                        console != null ? console.getName() : null
+                    )
+                );
+            });
+
+        return result;
+    }
+
+    /** Utility map: variant UID -> variant name. */
+    public Map<String, String> loadVariantNameMap() {
+        return variantRepo.findAllByOrderByNameAsc()
+            .stream()
+            .collect(Collectors.toMap(
+                v -> v.getUid(),
+                v -> v.getName()
+            ));
+    }
+
+    /** Utility map: completion state UID -> completion state name. */
+    public Map<String, String> loadCompletionStateNameMap() {
+        return completionStateRepo.findAllByOrderByOrderAsc()
+            .stream()
+            .collect(Collectors.toMap(
+                cs -> cs.getUid(),
+                cs -> cs.getName()
+            ));
+    }
+
+    /** Utility map: playthrough type UID -> playthrough type name. */
+    public Map<String, String> loadPlaythroughTypeNameMap() {
+        return playthroughTypeRepo.findAllByOrderByNameAsc()
+            .stream()
+            .collect(Collectors.toMap(
+                t -> t.getUid(),
+                t -> t.getName()
+            ));
+    }
+
+    /** Utility map: console UID -> console name. */
+    public Map<String, String> loadConsoleNameMap() {
+        return consoleRepo.findAllByOrderByNameAsc()
+            .stream()
+            .collect(Collectors.toMap(
+                c -> c.getUid(),
+                c -> c.getName()
+            ));
+    }
+
+    /** Utility map: platform UID -> platform name. */
+    public Map<String, String> loadPlatformNameMap() {
+        return platformRepo.findAllByOrderByNameAsc()
+            .stream()
+            .collect(Collectors.toMap(
+                p -> p.getUid(),
+                p -> p.getName()
+            ));
+    }
+
+    /** Simple aggregated view used by {@link #loadPlatformConsoleMap()}. */
+    public record PlatformConsoleInfo(
+        String platformUid,
+        String platformName,
+        String consoleUid,
+        String consoleName
+    ) {}
 }

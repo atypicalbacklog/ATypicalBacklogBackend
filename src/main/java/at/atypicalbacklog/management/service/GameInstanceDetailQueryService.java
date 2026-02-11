@@ -1,6 +1,7 @@
 package at.atypicalbacklog.management.service;
 
 import at.atypicalbacklog.management.domain.*;
+import at.atypicalbacklog.management.domain.image.GameImage;
 import at.atypicalbacklog.management.domain.image.ImageOwnerType;
 import at.atypicalbacklog.management.domain.image.ImageType;
 import at.atypicalbacklog.management.dto.*;
@@ -9,6 +10,7 @@ import at.atypicalbacklog.management.dto.completion.GameCompletionInfoDto;
 import at.atypicalbacklog.management.repository.*;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -74,7 +76,10 @@ public class GameInstanceDetailQueryService {
         return imageRepo
             .findByOwnerTypeAndTypeAndGameInstanceUid(ImageOwnerType.GAME_INSTANCE, ImageType.COVER, gameInstanceUid)
             .stream()
-            .filter(img -> img.isPrimaryImage())
+            .sorted(
+                Comparator.comparing(GameImage::isPrimaryImage).reversed()
+                    .thenComparing(GameImage::getCreationDate).reversed()
+            )
             .findFirst()
             .map(img -> img.getUid())
             .orElse(null);

@@ -52,6 +52,9 @@ dependencies {
     // OpenAPI
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0")
 
+    // CSV parsing
+    implementation("org.apache.commons:commons-csv:1.14.1")
+
     // Test
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
