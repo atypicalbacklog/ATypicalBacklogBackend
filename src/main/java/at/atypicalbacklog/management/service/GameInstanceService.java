@@ -47,7 +47,8 @@ public class GameInstanceService {
             req.variantUid(),
             req.receivedDate(),
             Boolean.TRUE.equals(req.forFree()),
-            req.inPossession() == null || req.inPossession()
+            req.inPossession() == null || req.inPossession(),
+            req.externalIgdbId()
         );
 
         repository.save(instance);
@@ -96,7 +97,8 @@ public class GameInstanceService {
             req.variantUid() != null ? req.variantUid() : existing.getVariantUid(),
             req.receivedDate() != null ? req.receivedDate() : existing.getReceivedDate(),
             req.forFree() != null ? req.forFree() : existing.isForFree(),
-            req.inPossession() != null ? req.inPossession() : existing.isInPossession()
+            req.inPossession() != null ? req.inPossession() : existing.isInPossession(),
+            req.externalIgdbId() != null ? req.externalIgdbId() : existing.getExternalIgdbId()
         );
 
         repository.save(updated);
@@ -153,7 +155,8 @@ public class GameInstanceService {
             gi.getOriginalConsoleUid(),
             gi.getReceivedDate(),
             gi.isForFree(),
-            gi.isInPossession()
+            gi.isInPossession(),
+            gi.getExternalIgdbId()
         );
     }
 }

@@ -12,6 +12,8 @@ public record UpdateStagedGameRequest(
     String proposedPlatformUid,
     String matchedGameUid,
     String matchedGameInstanceUid,
+    String matchedExternalIgdbId,
+    String matchedOriginalConsoleUid,
     String proposedCompletionStateUid,
     LocalDate backlogStartDate,
     LocalDate backlogEndDate,

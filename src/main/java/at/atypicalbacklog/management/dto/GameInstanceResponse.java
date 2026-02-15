@@ -14,5 +14,7 @@ public record GameInstanceResponse(
     LocalDate receivedDate,
 
     boolean forFree,
-    boolean inPossession
+    boolean inPossession,
+
+    String externalIgdbId
 ) {}

@@ -12,6 +12,7 @@ public record ImageMetadataDto(
     ImageOwnerType ownerType,
     String gameUid,
     String gameInstanceUid,
+    String dlcUid,
 
     ImageType type,
     ImageAspectHint aspectHint,

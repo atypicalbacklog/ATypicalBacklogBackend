@@ -20,6 +20,8 @@ public record GameInstanceDetailResponse(
     boolean forFree,
     boolean inPossession,
 
+    String externalIgdbId,
+
     String coverImageUid,
 
     // optional enrichments: all backlog entries for this instance's game

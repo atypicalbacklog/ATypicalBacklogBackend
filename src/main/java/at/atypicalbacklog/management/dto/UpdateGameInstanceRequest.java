@@ -16,5 +16,8 @@ public record UpdateGameInstanceRequest(
     LocalDate receivedDate,
 
     Boolean forFree,
-    Boolean inPossession
+    Boolean inPossession,
+
+    /** Optional IGDB game ID (external reference); if null, existing value is kept. */
+    String externalIgdbId
 ) {}

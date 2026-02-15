@@ -9,5 +9,6 @@ public record DlcResponse(
     LocalDate receivedDate,
     LocalDate releaseDate,
     String playthroughUid,
-    String completionStateUid
+    String completionStateUid,
+    String coverImageUid
 ) {}

@@ -28,6 +28,7 @@ public class GameImageController {
     }
 
     /** List images for a GameInstance */
+    @Deprecated
     @GetMapping("/game-instance/{gameInstanceUid}")
     public List<ImageMetadataDto> listForInstance(
         @PathVariable String gameInstanceUid
@@ -35,12 +36,18 @@ public class GameImageController {
         return queryService.listForGameInstance(gameInstanceUid);
     }
 
-    /** Update image metadata */
+    /** Update image metadata (all fields optional except source, filename, mimetype which are not updatable). */
     @PutMapping("/{uid}")
     public void updateMetadata(
         @PathVariable String uid,
         @RequestBody UpdateImageMetadataRequest req
     ) {
         commandService.updateMetadata(uid, req);
+    }
+
+    /** Delete image by UID (removes file(s) and DB record). */
+    @DeleteMapping("/{uid}")
+    public void delete(@PathVariable String uid) {
+        commandService.deleteByUid(uid);
     }
 }

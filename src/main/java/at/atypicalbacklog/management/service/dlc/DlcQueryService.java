@@ -28,7 +28,13 @@ public class DlcQueryService {
               d.received_date,
               d.release_date,
               d.playthrough_uid,
-              gc.completion_state_uid
+              gc.completion_state_uid,
+              (SELECT img.uid FROM game_image img
+               WHERE img.dlc_uid = d.uid
+                 AND img.owner_type = 'DLC'
+                 AND img.type = 'COVER'
+               ORDER BY img.primary_image DESC NULLS LAST, img.creation_date DESC
+               LIMIT 1) AS cover_image_uid
             FROM dlc d
             LEFT JOIN game_completion gc ON gc.dlc_uid = d.uid
             WHERE d.game_instance_uid = :gameInstanceUid
@@ -45,7 +51,8 @@ public class DlcQueryService {
             rs.getObject("received_date", LocalDate.class),
             rs.getObject("release_date", LocalDate.class),
             rs.getString("playthrough_uid"),
-            rs.getString("completion_state_uid")
+            rs.getString("completion_state_uid"),
+            rs.getString("cover_image_uid")
         );
     }
 }

@@ -14,5 +14,8 @@ public record CreateGameInstanceRequest(
     LocalDate receivedDate,
 
     Boolean forFree,
-    Boolean inPossession
+    Boolean inPossession,
+
+    /** Optional IGDB game ID (external reference). */
+    String externalIgdbId
 ) {}

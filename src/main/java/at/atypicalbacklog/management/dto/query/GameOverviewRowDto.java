@@ -28,8 +28,10 @@ public record GameOverviewRowDto(
     String variantUid,
     String variantName,
 
-    // Instance cover (game instance cover when available)
-    String instanceCoverImageUid,
+    // Covers (each on its own; client may choose which to display)
+    String gameCoverImageUid,       // game-level cover (owner_type GAME)
+    String instanceCoverImageUid,   // game instance cover (owner_type GAME_INSTANCE)
+    String dlcCoverImageUid,        // DLC cover (owner_type DLC; non-null only when isDlc and DLC has cover)
 
     // DLC-specific (null when instance row)
     String dlcName,
@@ -42,9 +44,6 @@ public record GameOverviewRowDto(
 
     // Aggregates (from instance or DLC playthrough; null when DLC not linked)
     Long totalPlaytimeSeconds,
-
-    // Presentation: game/instance fallback cover
-    String coverImageUid,
 
     // Instance has at least one DLC
     boolean hasDlc

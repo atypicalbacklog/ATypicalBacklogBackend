@@ -66,6 +66,7 @@ public class GameInstanceDetailQueryService {
             gi.getReceivedDate(),
             gi.isForFree(),
             gi.isInPossession(),
+            gi.getExternalIgdbId(),
             coverImageUid,
             backlogEntries,
             completions

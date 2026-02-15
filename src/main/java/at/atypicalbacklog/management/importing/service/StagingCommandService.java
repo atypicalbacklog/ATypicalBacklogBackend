@@ -1,5 +1,6 @@
 package at.atypicalbacklog.management.importing.service;
 
+import at.atypicalbacklog.management.importing.ResolutionStatus;
 import at.atypicalbacklog.management.importing.domain.StagedGame;
 import at.atypicalbacklog.management.importing.domain.StagedPlaythroughGroup;
 import at.atypicalbacklog.management.importing.dto.UpdateStagedGameRequest;
@@ -14,13 +15,16 @@ public class StagingCommandService {
 
     private final StagedGameRepository gameRepo;
     private final StagedPlaythroughGroupRepository groupRepo;
+    private final StagedGameImportService importService;
 
     public StagingCommandService(
         StagedGameRepository gameRepo,
-        StagedPlaythroughGroupRepository groupRepo
+        StagedPlaythroughGroupRepository groupRepo,
+        StagedGameImportService importService
     ) {
         this.gameRepo = gameRepo;
         this.groupRepo = groupRepo;
+        this.importService = importService;
     }
 
     @Transactional
@@ -34,12 +38,18 @@ public class StagingCommandService {
         if (req.proposedPlatformUid() != null) game.setProposedPlatformUid(req.proposedPlatformUid());
         if (req.matchedGameUid() != null) game.setMatchedGameUid(req.matchedGameUid());
         if (req.matchedGameInstanceUid() != null) game.setMatchedGameInstanceUid(req.matchedGameInstanceUid());
+        if (req.matchedExternalIgdbId() != null) game.setMatchedExternalIgdbId(req.matchedExternalIgdbId());
+        if (req.matchedOriginalConsoleUid() != null) game.setMatchedOriginalConsoleUid(req.matchedOriginalConsoleUid());
         if (req.proposedCompletionStateUid() != null) game.setProposedCompletionStateUid(req.proposedCompletionStateUid());
         if (req.backlogStartDate() != null) game.setBacklogStartDate(req.backlogStartDate());
         if (req.backlogEndDate() != null) game.setBacklogEndDate(req.backlogEndDate());
         if (req.backlogReason() != null) game.setBacklogReason(req.backlogReason());
         if (req.resolutionStatus() != null) game.setResolutionStatus(req.resolutionStatus());
-        return gameRepo.save(game);
+        StagedGame saved = gameRepo.save(game);
+        if (saved.getResolutionStatus() == ResolutionStatus.FINALIZED) {
+            importService.importFinalizedStagedGame(saved);
+        }
+        return saved;
     }
 
     @Transactional

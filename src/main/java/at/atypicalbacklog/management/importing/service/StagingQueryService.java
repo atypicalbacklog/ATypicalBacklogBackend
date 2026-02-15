@@ -1,5 +1,6 @@
 package at.atypicalbacklog.management.importing.service;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -92,6 +93,18 @@ public class StagingQueryService {
         );
     }
 
+    /** Search StagedGames by name (ILIKE on proposed_name, matched game/instance names). Returns StagedGameDetailDto list. */
+    public List<StagedGameDetailDto> searchStagedGamesByName(String name) {
+        if (name == null || name.isBlank()) {
+            return List.of();
+        }
+        String pattern = "%" + name.trim() + "%";
+        List<StagedGame> games = gameRepo.findAllByNameIlike(pattern);
+        return games.stream()
+            .map(g -> getStagedGameByUid(g.getUid()))
+            .collect(Collectors.toList());
+    }
+
     /** List all StagedGames, optionally filtered by status (uids + names + status). */
     public List<StagedGameSummaryDto> listStagedGamesByStatus(ResolutionStatus status) {
         List<StagedGame> games = status == null
@@ -106,9 +119,31 @@ public class StagingQueryService {
             .collect(Collectors.toList());
     }
 
-    /** List all StagedPlaythroughGroups that have no staged game assigned. */
-    public List<StagedPlaythroughGroupSummaryDto> listPlaythroughGroupsWithoutStagedGame() {
-        return groupRepo.findByStagedGameUidIsNull().stream()
+    /** Get StagedPlaythroughGroup by uid. */
+    public StagedPlaythroughGroupSummaryDto getStagedPlaythroughGroupByUid(String uid) {
+        StagedPlaythroughGroup g = groupRepo.findById(uid)
+            .orElseThrow(() -> new IllegalArgumentException("StagedPlaythroughGroup not found: " + uid));
+        return new StagedPlaythroughGroupSummaryDto(
+            g.getUid(),
+            g.getImportBatchUid(),
+            g.getStagedGameUid(),
+            g.getImportedPlaythroughName(),
+            g.getInferredTypeUid(),
+            g.getInferredYear(),
+            g.getProposedPlaythroughStateUid(),
+            g.getResolutionStatus()
+        );
+    }
+
+    /**
+     * List StagedPlaythroughGroups by mapped/unmapped.
+     * @param unmapped true = only groups without a staged game; false = only groups with a staged game
+     */
+    public List<StagedPlaythroughGroupSummaryDto> listPlaythroughGroupsByUnmapped(boolean unmapped) {
+        List<StagedPlaythroughGroup> groups = unmapped
+            ? groupRepo.findByStagedGameUidIsNull()
+            : groupRepo.findByStagedGameUidIsNotNullAndResolutionStatusNot(ResolutionStatus.IMPORTED);
+        return groups.stream()
             .map(g -> new StagedPlaythroughGroupSummaryDto(
                 g.getUid(),
                 g.getImportBatchUid(),
@@ -120,5 +155,14 @@ public class StagingQueryService {
                 g.getResolutionStatus()
             ))
             .collect(Collectors.toList());
+    }
+
+    /** Count of StagedGames per resolution status. Returns map status name -> count (all statuses included). */
+    public Map<String, Integer> getStagedGameCountsByResolutionStatus() {
+        Map<String, Integer> counts = new LinkedHashMap<>();
+        for (ResolutionStatus status : ResolutionStatus.values()) {
+            counts.put(status.name(), (int) gameRepo.countByResolutionStatus(status));
+        }
+        return counts;
     }
 }

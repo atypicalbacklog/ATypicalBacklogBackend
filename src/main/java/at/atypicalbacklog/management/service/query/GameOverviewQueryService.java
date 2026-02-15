@@ -59,11 +59,18 @@ public class GameOverviewQueryService {
               v.name                        AS variant_name,
 
               (SELECT img.uid FROM game_image img
+               WHERE img.game_uid = g.uid
+                 AND img.owner_type = 'GAME'
+                 AND img.type = 'COVER'
+               ORDER BY img.primary_image DESC NULLS LAST, img.creation_date DESC
+               LIMIT 1)                     AS game_cover_image_uid,
+              (SELECT img.uid FROM game_image img
                WHERE img.game_instance_uid = gi.uid
                  AND img.owner_type = 'GAME_INSTANCE'
                  AND img.type = 'COVER'
                ORDER BY img.primary_image DESC NULLS LAST, img.creation_date DESC
                LIMIT 1)                     AS instance_cover_image_uid,
+              NULL::text                    AS dlc_cover_image_uid,
 
               NULL::text                    AS dlc_name,
               NULL::date                    AS dlc_release_date,
@@ -98,17 +105,6 @@ public class GameOverviewQueryService {
                 WHERE pt.game_instance_uid = gi.uid
                   """ + playthroughTypeCond(req, "pt") + """
               ), 0)::bigint                 AS total_playtime_seconds,
-
-              COALESCE(
-                (SELECT img.uid FROM game_image img
-                 WHERE img.game_instance_uid = gi.uid
-                 ORDER BY img.primary_image DESC NULLS LAST, img.creation_date DESC
-                 LIMIT 1),
-                (SELECT img.uid FROM game_image img
-                 WHERE img.game_uid = g.uid
-                 ORDER BY img.primary_image DESC NULLS LAST, img.creation_date DESC
-                 LIMIT 1)
-              )                             AS cover_image_uid,
 
               EXISTS (
                 SELECT 1 FROM dlc d WHERE d.game_instance_uid = gi.uid
@@ -154,11 +150,23 @@ public class GameOverviewQueryService {
               v.name                        AS variant_name,
 
               (SELECT img.uid FROM game_image img
+               WHERE img.game_uid = g.uid
+                 AND img.owner_type = 'GAME'
+                 AND img.type = 'COVER'
+               ORDER BY img.primary_image DESC NULLS LAST, img.creation_date DESC
+               LIMIT 1)                     AS game_cover_image_uid,
+              (SELECT img.uid FROM game_image img
                WHERE img.game_instance_uid = gi.uid
                  AND img.owner_type = 'GAME_INSTANCE'
                  AND img.type = 'COVER'
                ORDER BY img.primary_image DESC NULLS LAST, img.creation_date DESC
                LIMIT 1)                     AS instance_cover_image_uid,
+              (SELECT img.uid FROM game_image img
+               WHERE img.dlc_uid = d.uid
+                 AND img.owner_type = 'DLC'
+                 AND img.type = 'COVER'
+               ORDER BY img.primary_image DESC NULLS LAST, img.creation_date DESC
+               LIMIT 1)                     AS dlc_cover_image_uid,
 
               d.name                        AS dlc_name,
               d.release_date                AS dlc_release_date,
@@ -193,17 +201,6 @@ public class GameOverviewQueryService {
                 FROM time_booking tb
                 WHERE tb.playthrough_uid = d.playthrough_uid)
               ELSE NULL END                AS total_playtime_seconds,
-
-              COALESCE(
-                (SELECT img.uid FROM game_image img
-                 WHERE img.game_instance_uid = gi.uid
-                 ORDER BY img.primary_image DESC NULLS LAST, img.creation_date DESC
-                 LIMIT 1),
-                (SELECT img.uid FROM game_image img
-                 WHERE img.game_uid = g.uid
-                 ORDER BY img.primary_image DESC NULLS LAST, img.creation_date DESC
-                 LIMIT 1)
-              )                             AS cover_image_uid,
 
               true                          AS has_dlc,
 
@@ -426,7 +423,9 @@ public class GameOverviewQueryService {
                 rs.getString("variant_uid"),
                 rs.getString("variant_name"),
 
+                rs.getString("game_cover_image_uid"),
                 rs.getString("instance_cover_image_uid"),
+                rs.getString("dlc_cover_image_uid"),
 
                 rs.getString("dlc_name"),
                 rs.getObject("dlc_release_date", LocalDate.class),
@@ -437,7 +436,6 @@ public class GameOverviewQueryService {
 
                 rs.getObject("total_playtime_seconds", Long.class),
 
-                rs.getString("cover_image_uid"),
                 rs.getBoolean("has_dlc")
         );
     }

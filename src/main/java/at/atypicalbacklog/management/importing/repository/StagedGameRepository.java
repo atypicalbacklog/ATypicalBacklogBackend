@@ -17,6 +17,8 @@ public interface StagedGameRepository
 
     List<StagedGame> findByResolutionStatus(ResolutionStatus status);
 
+    long countByResolutionStatus(ResolutionStatus status);
+
     /**
      * Finds a staged game by name using ILIKE search.
      * Searches in:
@@ -38,6 +40,24 @@ public interface StagedGameRepository
         LIMIT 1
         """, nativeQuery = true)
     Optional<StagedGame> findByNameIlike(@Param("searchPattern") String searchPattern);
+
+    /**
+     * Finds staged games by name using ILIKE search (same sources as findByNameIlike).
+     * @param searchPattern search pattern (typically "%" + name + "%" for contains)
+     * @return list of matching StagedGames, limited to 100
+     */
+    @Query(value = """
+        SELECT sg.* FROM staged_game sg
+        LEFT JOIN game_instance gi ON gi.uid = sg.matched_game_instance_uid
+        LEFT JOIN game g ON g.uid = sg.matched_game_uid
+        WHERE 
+          LOWER(sg.proposed_name) LIKE LOWER(:searchPattern)
+          OR (sg.matched_game_instance_uid IS NOT NULL AND LOWER(gi.name) LIKE LOWER(:searchPattern))
+          OR (sg.matched_game_uid IS NOT NULL AND LOWER(g.name_base) LIKE LOWER(:searchPattern))
+        ORDER BY sg.proposed_name
+        LIMIT 100
+        """, nativeQuery = true)
+    List<StagedGame> findAllByNameIlike(@Param("searchPattern") String searchPattern);
 
     /**
      * Finds an existing game UID by searching game names, game instance names, and DLC names.

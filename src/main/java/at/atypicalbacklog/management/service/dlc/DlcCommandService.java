@@ -9,6 +9,7 @@ import at.atypicalbacklog.management.repository.DlcRepository;
 import at.atypicalbacklog.management.repository.GameCompletionRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
@@ -66,15 +67,17 @@ public class DlcCommandService {
         );
         gameCompletionRepo.save(gc);
 
+        Map<String, Object> auditAttrs = new HashMap<>();
+        auditAttrs.put("dlcUid", dlc.getUid());
+        auditAttrs.put("gameInstanceUid", dlc.getGameInstanceUid());
+        if (dlc.getPlaythroughUid() != null) {
+            auditAttrs.put("playthroughUid", dlc.getPlaythroughUid());
+        }
         audit.record(
             "Create DLC",
             "DLC",
             "CREATE",
-            Map.of(
-                "dlcUid", dlc.getUid(),
-                "gameInstanceUid", dlc.getGameInstanceUid(),
-                "playthroughUid", dlc.getPlaythroughUid()
-            ),
+            auditAttrs,
             null,
             dlc,
             null
@@ -132,7 +135,8 @@ public class DlcCommandService {
             dlc.getReceivedDate(),
             dlc.getReleaseDate(),
             dlc.getPlaythroughUid(),
-            completionStateUid
+            completionStateUid,
+            null
         );
     }
 }

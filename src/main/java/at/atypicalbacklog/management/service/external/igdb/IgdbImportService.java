@@ -6,6 +6,7 @@ import at.atypicalbacklog.management.external.igdb.IgdbClient;
 import at.atypicalbacklog.management.image.FilenameUtils;
 import at.atypicalbacklog.management.image.processing.ThumbnailGenerator;
 import at.atypicalbacklog.management.image.storage.ImageStorage;
+import at.atypicalbacklog.management.repository.DlcRepository;
 import at.atypicalbacklog.management.repository.GameImageRepository;
 import at.atypicalbacklog.management.repository.GameInstanceRepository;
 import at.atypicalbacklog.management.repository.GameRepository;
@@ -30,6 +31,7 @@ public class IgdbImportService {
     private final GameImageRepository repository;
     private final GameRepository gameRepository;
     private final GameInstanceRepository gameInstanceRepository;
+    private final DlcRepository dlcRepository;
     private final ImageStorage storage;
     private final ThumbnailGenerator thumbnails;
     private final ObjectMapper mapper = new ObjectMapper();
@@ -39,6 +41,7 @@ public class IgdbImportService {
         GameImageRepository repository,
         GameRepository gameRepository,
         GameInstanceRepository gameInstanceRepository,
+        DlcRepository dlcRepository,
         ImageStorage storage,
         ThumbnailGenerator thumbnails
     ) {
@@ -46,14 +49,15 @@ public class IgdbImportService {
         this.repository = repository;
         this.gameRepository = gameRepository;
         this.gameInstanceRepository = gameInstanceRepository;
+        this.dlcRepository = dlcRepository;
         this.storage = storage;
         this.thumbnails = thumbnails;
     }
 
     public void importCover(long externalId, ImageOwnerType ownerType,
-                            String gameUid, String gameInstanceUid) {
-        log.info("Starting IGDB cover import: externalId={}, ownerType={}, gameUid={}, gameInstanceUid={}",
-                externalId, ownerType, gameUid, gameInstanceUid);
+                            String gameUid, String gameInstanceUid, String dlcUid) {
+        log.info("Starting IGDB cover import: externalId={}, ownerType={}, gameUid={}, gameInstanceUid={}, dlcUid={}",
+                externalId, ownerType, gameUid, gameInstanceUid, dlcUid);
 
         String body = """
             fields cover.url;
@@ -114,9 +118,9 @@ public class IgdbImportService {
             String uid = UUID.randomUUID().toString();
             log.debug("Generated image UID: {}", uid);
 
-            String gameName = resolveGameName(ownerType, gameUid, gameInstanceUid);
-            String sanitizedGameName = FilenameUtils.sanitizeGameName(gameName);
-            String filename = FilenameUtils.buildImageFilename(gameName, "image/jpeg");
+            String displayName = resolveDisplayNameForSave(ownerType, gameUid, gameInstanceUid, dlcUid);
+            String sanitizedName = FilenameUtils.sanitizeGameName(displayName);
+            String filename = FilenameUtils.buildImageFilename(displayName, "image/jpeg");
 
             GameImage image = new GameImage(
                 uid,
@@ -125,6 +129,7 @@ public class IgdbImportService {
                 ownerType,
                 gameUid,
                 gameInstanceUid,
+                ownerType == ImageOwnerType.DLC ? dlcUid : null,
                 ImageType.COVER,
                 ImageAspectHint.VERTICAL,
                 ImageSource.IMPORT,
@@ -135,14 +140,14 @@ public class IgdbImportService {
             // Create separate InputStreams from the byte array for both operations
             try (InputStream originalStream = new ByteArrayInputStream(imageData)) {
                 log.debug("Storing original image: uid={}, size={} bytes", uid, imageData.length);
-                storage.storeOriginal(uid, originalStream, "image/jpeg", sanitizedGameName);
+                storage.storeOriginal(uid, originalStream, "image/jpeg", sanitizedName);
                 log.info("Successfully stored original image: uid={}", uid);
             }
 
             try (InputStream thumbnailInput = new ByteArrayInputStream(imageData);
                  InputStream thumbnailStream = thumbnails.generateThumbnail(thumbnailInput)) {
                 log.debug("Generating and storing thumbnail: uid={}", uid);
-                storage.storeThumbnail(uid, thumbnailStream, sanitizedGameName, "image/jpeg");
+                storage.storeThumbnail(uid, thumbnailStream, sanitizedName, "image/jpeg");
                 log.info("Successfully stored thumbnail: uid={}", uid);
             }
 
@@ -151,13 +156,21 @@ public class IgdbImportService {
             log.info("Successfully completed IGDB cover import: uid={}, externalId={}", uid, externalId);
 
         } catch (Exception e) {
-            log.error("IGDB cover import failed: externalId={}, ownerType={}, gameUid={}, gameInstanceUid={}",
-                    externalId, ownerType, gameUid, gameInstanceUid, e);
+            log.error("IGDB cover import failed: externalId={}, ownerType={}, gameUid={}, gameInstanceUid={}, dlcUid={}",
+                    externalId, ownerType, gameUid, gameInstanceUid, dlcUid, e);
             throw new IllegalStateException("IGDB cover import failed", e);
         }
     }
 
-    private String resolveGameName(ImageOwnerType ownerType, String gameUid, String gameInstanceUid) {
+    /**
+     * Resolves the display name used for saving the image (filename base). For DLC uses Dlc.name; otherwise game or instance name.
+     */
+    private String resolveDisplayNameForSave(ImageOwnerType ownerType, String gameUid, String gameInstanceUid, String dlcUid) {
+        if (ownerType == ImageOwnerType.DLC && dlcUid != null && !dlcUid.isBlank()) {
+            return dlcRepository.findById(dlcUid)
+                .map(dlc -> dlc.getName() != null && !dlc.getName().isBlank() ? dlc.getName() : "dlc")
+                .orElse("dlc");
+        }
         if (ownerType == ImageOwnerType.GAME_INSTANCE && gameInstanceUid != null) {
             return gameInstanceRepository.findById(gameInstanceUid)
                 .map(gi -> {

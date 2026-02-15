@@ -17,17 +17,20 @@ public class ImageOrphanDetectionService {
     private final GameImageRepository imageRepo;
     private final GameRepository gameRepo;
     private final GameInstanceRepository instanceRepo;
+    private final DlcRepository dlcRepo;
     private final ImageStorage storage;
 
     public ImageOrphanDetectionService(
         GameImageRepository imageRepo,
         GameRepository gameRepo,
         GameInstanceRepository instanceRepo,
+        DlcRepository dlcRepo,
         ImageStorage storage
     ) {
         this.imageRepo = imageRepo;
         this.gameRepo = gameRepo;
         this.instanceRepo = instanceRepo;
+        this.dlcRepo = dlcRepo;
         this.storage = storage;
     }
 
@@ -52,6 +55,9 @@ public class ImageOrphanDetectionService {
                 case GAME_INSTANCE ->
                     img.getGameInstanceUid() != null
                         && instanceRepo.existsById(img.getGameInstanceUid());
+                case DLC ->
+                    img.getDlcUid() != null
+                        && dlcRepo.existsById(img.getDlcUid());
             };
 
             if (!originalExists || !thumbnailExists || !ownerExists) {

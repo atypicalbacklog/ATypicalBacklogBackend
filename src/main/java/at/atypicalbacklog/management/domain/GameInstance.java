@@ -41,6 +41,9 @@ public class GameInstance {
     @Column(name = "in_posession", nullable = false)
     private boolean inPossession;
 
+    @Column(name = "external_igdb_id")
+    private String externalIgdbId;
+
     protected GameInstance() {}
 
     public GameInstance(
@@ -54,7 +57,8 @@ public class GameInstance {
         String variantUid,
         LocalDate receivedDate,
         boolean forFree,
-        boolean inPossession
+        boolean inPossession,
+        String externalIgdbId
     ) {
         this.uid = uid;
         this.creationDate = creationDate;
@@ -67,6 +71,7 @@ public class GameInstance {
         this.receivedDate = receivedDate;
         this.forFree = forFree;
         this.inPossession = inPossession;
+        this.externalIgdbId = externalIgdbId;
     }
 
     // getters only
@@ -81,4 +86,5 @@ public class GameInstance {
     public LocalDate getReceivedDate() { return receivedDate; }
     public boolean isForFree() { return forFree; }
     public boolean isInPossession() { return inPossession; }
+    public String getExternalIgdbId() { return externalIgdbId; }
 }

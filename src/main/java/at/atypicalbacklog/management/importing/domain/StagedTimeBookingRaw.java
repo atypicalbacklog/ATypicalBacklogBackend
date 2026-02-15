@@ -42,5 +42,15 @@ public class StagedTimeBookingRaw {
         this.endTime = endTime;
     }
 
-    
+    public String getStagedPlaythroughGroupUid() {
+        return stagedPlaythroughGroupUid;
+    }
+
+    public java.time.Instant getStartTime() {
+        return startTime;
+    }
+
+    public java.time.Instant getEndTime() {
+        return endTime;
+    }
 }

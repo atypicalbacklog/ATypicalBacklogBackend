@@ -15,6 +15,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.UUID;
 
@@ -66,6 +68,7 @@ public class GameImageCommandService {
             ownerType,
             gameUid,
             gameInstanceUid,
+            null,
             type,
             aspectHint,
             source,
@@ -126,6 +129,11 @@ public class GameImageCommandService {
         GameImage image = repository.findById(uid)
             .orElseThrow(() -> new IllegalArgumentException("Image not found"));
 
+        if (req.ownerType() != null) image.setOwnerType(req.ownerType());
+        if (req.gameUid() != null) image.setGameUid(req.gameUid());
+        if (req.gameInstanceUid() != null) image.setGameInstanceUid(req.gameInstanceUid());
+        if (req.dlcUid() != null) image.setDlcUid(req.dlcUid());
+
         ImageType newType = req.type() != null ? req.type() : image.getType();
 
         // Handle primary change explicitly
@@ -144,21 +152,39 @@ public class GameImageCommandService {
 
     private void unsetOtherPrimaries(GameImage image, ImageType type) {
 
-        List<GameImage> siblings =
-            image.getOwnerType() == ImageOwnerType.GAME
-                ? repository.findByOwnerTypeAndTypeAndGameUid(
-                    ImageOwnerType.GAME,
-                    type,
-                    image.getGameUid()
-                )
-                : repository.findByOwnerTypeAndTypeAndGameInstanceUid(
-                    ImageOwnerType.GAME_INSTANCE,
-                    type,
-                    image.getGameInstanceUid()
-                );
+        List<GameImage> siblings;
+        if (image.getOwnerType() == ImageOwnerType.GAME && image.getGameUid() != null) {
+            siblings = repository.findByOwnerTypeAndTypeAndGameUid(
+                ImageOwnerType.GAME, type, image.getGameUid());
+        } else if (image.getOwnerType() == ImageOwnerType.GAME_INSTANCE && image.getGameInstanceUid() != null) {
+            siblings = repository.findByOwnerTypeAndTypeAndGameInstanceUid(
+                ImageOwnerType.GAME_INSTANCE, type, image.getGameInstanceUid());
+        } else if (image.getOwnerType() == ImageOwnerType.DLC && image.getDlcUid() != null) {
+            siblings = repository.findByOwnerTypeAndTypeAndDlcUid(
+                ImageOwnerType.DLC, type, image.getDlcUid());
+        } else {
+            siblings = List.of();
+        }
 
         siblings.stream()
             .filter(GameImage::isPrimaryImage)
             .forEach(img -> img.setPrimaryImage(false));
+    }
+
+    @Transactional
+    public void deleteByUid(String uid) {
+        GameImage image = repository.findById(uid)
+            .orElseThrow(() -> new IllegalArgumentException("Image not found"));
+        deleteFileIfExists(storage.resolveOriginalPath(uid));
+        deleteFileIfExists(storage.resolveThumbnailPath(uid));
+        repository.delete(image);
+    }
+
+    private void deleteFileIfExists(String path) {
+        try {
+            Files.deleteIfExists(Path.of(path));
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to delete file: " + path, e);
+        }
     }
 }

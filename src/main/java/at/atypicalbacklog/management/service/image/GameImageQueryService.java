@@ -16,12 +16,10 @@ public class GameImageQueryService {
         this.repository = repository;
     }
 
+    /** List all images linked to the game: game-level, instance-level (instances of this game), and DLC-level (DLCs of those instances). */
     public List<ImageMetadataDto> listForGame(String gameUid) {
         return repository
-            .findByOwnerTypeAndGameUidOrderByTypeAscPrimaryImageDescCreationDateAsc(
-                ImageOwnerType.GAME,
-                gameUid
-            )
+            .findAllByGameUidOrInstanceOrDlcLinkedToGame(gameUid)
             .stream()
             .map(this::toDto)
             .toList();
@@ -45,6 +43,7 @@ public class GameImageQueryService {
             img.getOwnerType(),
             img.getGameUid(),
             img.getGameInstanceUid(),
+            img.getDlcUid(),
             img.getType(),
             img.getAspectHint(),
             img.getSource(),

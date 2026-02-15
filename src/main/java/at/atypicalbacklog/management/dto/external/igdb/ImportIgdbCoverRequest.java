@@ -6,5 +6,6 @@ public record ImportIgdbCoverRequest(
     long externalId,
     ImageOwnerType ownerType,
     String gameUid,
-    String gameInstanceUid
+    String gameInstanceUid,
+    String dlcUid
 ) {}

@@ -29,6 +29,9 @@ public class GameImage {
     @Column(name = "game_instance_uid")
     private String gameInstanceUid;
 
+    @Column(name = "dlc_uid")
+    private String dlcUid;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ImageType type;
@@ -53,6 +56,7 @@ public class GameImage {
         ImageOwnerType ownerType,
         String gameUid,
         String gameInstanceUid,
+        String dlcUid,
         ImageType type,
         ImageAspectHint aspectHint,
         ImageSource source,
@@ -65,6 +69,7 @@ public class GameImage {
         this.ownerType = ownerType;
         this.gameUid = gameUid;
         this.gameInstanceUid = gameInstanceUid;
+        this.dlcUid = dlcUid;
         this.type = type;
         this.aspectHint = aspectHint;
         this.source = source;
@@ -85,6 +90,22 @@ public class GameImage {
 
     public void setSource(ImageSource source) {
         this.source = source;
+    }
+
+    public void setOwnerType(ImageOwnerType ownerType) {
+        this.ownerType = ownerType;
+    }
+
+    public void setGameUid(String gameUid) {
+        this.gameUid = gameUid;
+    }
+
+    public void setGameInstanceUid(String gameInstanceUid) {
+        this.gameInstanceUid = gameInstanceUid;
+    }
+
+    public void setDlcUid(String dlcUid) {
+        this.dlcUid = dlcUid;
     }
 
     // getters only
@@ -116,6 +137,10 @@ public class GameImage {
         return gameInstanceUid;
     }
     
+    public String getDlcUid() {
+        return dlcUid;
+    }
+
     public ImageType getType() {
         return type;
     }

@@ -9,5 +9,6 @@ public record IgdbGameSearchResultDto(
     LocalDate releaseDate,
     String coverImageUrl,
     String category,
-    List<String> releasedPlatforms
+    List<String> releasedPlatforms,
+    List<IgdbReleaseDateDto> releaseDates
 ) {}

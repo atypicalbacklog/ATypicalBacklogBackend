@@ -9,6 +9,7 @@ import at.atypicalbacklog.management.importing.repository.ImportRecordRepository
 import at.atypicalbacklog.management.importing.repository.StagedGameRepository;
 import at.atypicalbacklog.management.importing.repository.StagedPlaythroughGroupRepository;
 import at.atypicalbacklog.management.importing.repository.StagedTimeBookingRawRepository;
+import at.atypicalbacklog.management.repository.PlaythroughStateRepository;
 import at.atypicalbacklog.management.service.ReferenceDataService;
 import at.atypicalbacklog.management.service.ReferenceDataService.PlatformConsoleInfo;
 import jakarta.transaction.Transactional;
@@ -23,6 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Year;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -61,6 +63,7 @@ public class createStagingService {
     private final ImportBatchRepository batchRepo;
     private final ImportRecordRepository recordRepo;
     private final ReferenceDataService referenceDataService;
+    private final PlaythroughStateRepository playthroughStateRepo;
     private final ObjectMapper objectMapper;
 
     public createStagingService(
@@ -70,6 +73,7 @@ public class createStagingService {
         ImportBatchRepository batchRepo,
         ImportRecordRepository recordRepo,
         ReferenceDataService referenceDataService,
+        PlaythroughStateRepository playthroughStateRepo,
         ObjectMapper objectMapper
     ) {
         this.gameRepo = gameRepo;
@@ -78,6 +82,7 @@ public class createStagingService {
         this.batchRepo = batchRepo;
         this.recordRepo = recordRepo;
         this.referenceDataService = referenceDataService;
+        this.playthroughStateRepo = playthroughStateRepo;
         this.objectMapper = objectMapper;
     }
 
@@ -109,13 +114,8 @@ public class createStagingService {
     }
 
     private void createStagingForGameInstance(String batchUid, List<ImportRecord> records) throws JsonMappingException, JsonProcessingException {
-        Map<String, String> consoleNameMap = referenceDataService.loadConsoleNameMap();
-        //Map<String, String> completionStateNameMap = referenceDataService.loadCompletionStateNameMap();
-        Map<String, PlatformConsoleInfo> platformConsoleMap = referenceDataService.loadPlatformConsoleMap();
-        //Map<String, String> variantNameMap = referenceDataService.loadVariantNameMap();
+        Map<String, String> completionStateNameToUid = buildCompletionStateNameToUid(referenceDataService.loadCompletionStateNameMap());
         Map<String, String> platformNameMap = referenceDataService.loadPlatformNameMap();
-
-        referenceDataService.loadPlatformConsoleMap();
 
         for (ImportRecord record : records) {
             logger.info("Processing record: " + record.getRawPayload());
@@ -124,14 +124,14 @@ public class createStagingService {
             stagedGame.setUid(UUID.randomUUID().toString());
             stagedGame.setImportBatchUid(batchUid);
             stagedGame.setProposedName(parsedRecord.gameName());
-            stagedGame.setProposedReleaseDate(parsedRecord.releaseDate())  ;
+            stagedGame.setProposedReleaseDate(parsedRecord.releaseDate());
             stagedGame.setProposedReceivedDate(parsedRecord.receivedDate());
             // variant set by UI
             stagedGame.setProposedPlatformUid(platformNameMap.entrySet()
-            .stream()
-            .filter(entry -> entry.getValue().equals(parsedRecord.platform()))
-            .map(Map.Entry::getKey)
-            .findFirst().orElse(null));
+                .stream()
+                .filter(entry -> entry.getValue().equals(parsedRecord.platform()))
+                .map(Map.Entry::getKey)
+                .findFirst().orElse(null));
 
             // Try to find existing game by name (searches game, instance, and DLC names)
             if (parsedRecord.gameName() != null && !parsedRecord.gameName().isBlank()) {
@@ -139,10 +139,16 @@ public class createStagingService {
                 gameRepo.findExistingGameUidByNameIlike(searchPattern)
                     .ifPresent(stagedGame::setMatchedGameUid);
             }
-            
+
             // external id set by UI
             // original console set by UI 
-            // game completion state set by get & UI
+            // Game completion state from parsed row (first matching rule)
+            String completionKey = resolveCompletionStateKey(parsedRecord);
+            if (completionKey != null) {
+                Optional.ofNullable(completionStateNameToUid.get(completionKey))
+                    .ifPresent(stagedGame::setProposedCompletionStateUid);
+            }
+
             stagedGame.setBacklogStartDate(parsedRecord.backlogAdded());
             stagedGame.setBacklogEndDate(parsedRecord.backlogRemoved());
             // backlog reason set by UI
@@ -150,21 +156,63 @@ public class createStagingService {
             gameRepo.save(stagedGame);
         }
     }
+
+    /**
+     * Builds a map from normalized completion state name (e.g. "finishedplus", "backlog") to UID,
+     * so we can look up by logical key regardless of DB name casing/spacing.
+     */
+    private static Map<String, String> buildCompletionStateNameToUid(Map<String, String> uidToName) {
+        Map<String, String> nameToUid = new HashMap<>();
+        for (Map.Entry<String, String> e : uidToName.entrySet()) {
+            String normalized = e.getValue() == null ? null : e.getValue().toLowerCase().replaceAll("\\s+", "");
+            if (normalized != null && !normalized.isEmpty()) {
+                nameToUid.put(normalized, e.getKey());
+            }
+        }
+        return nameToUid;
+    }
+
+    /**
+     * Resolves the completion state key from parsed row (first matching rule):
+     * 1. FinishedPlus true -> finishedplus
+     * 2. finishedOn set OR finished true -> finished
+     * 3. Started true and not in backlog -> abandoned
+     * 4. Not started but still in backlog -> backlog
+     * 5. Not started but backlog removed -> cancelled
+     * 6. Else -> none
+     */
+    private static String resolveCompletionStateKey(ParsedGameInstanceRow row) {
+        if (row.finishedPlus()) {
+            return "finishedplus";
+        }
+        if (row.finishedOn() != null || row.finished()) {
+            return "finished";
+        }
+        if (row.started() && !row.backlog()) {
+            return "abandoned";
+        }
+        if (!row.started() && row.backlog()) {
+            return "backlog";
+        }
+        if (!row.started() && row.backlogRemoved() != null) {
+            return "cancelled";
+        }
+        return "none";
+    }
     
     private void createStagingForTimeBooking(String batchUid, List<ImportRecord> records) throws JsonMappingException, JsonProcessingException {
         Map<String, String> playthroughMap = new HashMap<>();
-
+        Map<String, String> completionStateUidToName = referenceDataService.loadCompletionStateNameMap();
 
         for (ImportRecord record : records) {
             ParsedTimeBookingRow parsedRecord = objectMapper.readValue(record.getRawPayload(), ParsedTimeBookingRow.class);
             String parsedGameName = parseGameName(parsedRecord.gameName());
             String parsedTypeUid = parseInferredType(parsedRecord.gameName());
             String mapKey = parsedGameName + " - " + parsedTypeUid;
-            
-            String stagedPlaythroughGroupUid = playthroughMap.get(mapKey);
 
+            String stagedPlaythroughGroupUid = playthroughMap.get(mapKey);
             if (!playthroughMap.containsKey(mapKey)) {
-                stagedPlaythroughGroupUid = createNewPlaythrough(batchUid, parsedGameName, parsedTypeUid, parsedRecord.date().getYear());
+                stagedPlaythroughGroupUid = createNewPlaythrough(batchUid, parsedGameName, parsedTypeUid, parsedRecord.date().getYear(), completionStateUidToName);
                 playthroughMap.put(mapKey, stagedPlaythroughGroupUid);
             }
             
@@ -180,26 +228,51 @@ public class createStagingService {
         }
     }
 
-    private String createNewPlaythrough(String batchUid, String parsedGameName, String parsedTypeUid, int year) {
+    private String createNewPlaythrough(String batchUid, String parsedGameName, String parsedTypeUid, int year,
+                                        Map<String, String> completionStateUidToName) {
         StagedPlaythroughGroup group = new StagedPlaythroughGroup();
         String groupUid = UUID.randomUUID().toString();
         group.setUid(groupUid);
         group.setImportBatchUid(batchUid);
-        
-        // Try to find matching staged game by name
+
+        // Try to find matching staged game by name; if found and inferred year is not this year, set playthrough state from game completion state
         if (parsedGameName != null && !parsedGameName.isBlank()) {
             String searchPattern = "%" + parsedGameName + "%";
-            gameRepo.findByNameIlike(searchPattern)
-                .ifPresent(stagedGame -> group.setStagedGameUid(stagedGame.getUid()));
+            gameRepo.findByNameIlike(searchPattern).ifPresent(stagedGame -> {
+                group.setStagedGameUid(stagedGame.getUid());
+                if (year != Year.now().getValue()) {
+                    String playthroughStateUid = resolvePlaythroughStateFromStagedGame(stagedGame.getProposedCompletionStateUid(), completionStateUidToName);
+                    if (playthroughStateUid != null) {
+                        group.setProposedPlaythroughStateUid(playthroughStateUid);
+                    }
+                }
+            });
         }
         group.setImportedPlaythroughName(parsedGameName);
-        
         group.setInferredTypeUid(parsedTypeUid);
         group.setInferredYear(year);
-        //group.setProposedPlaythroughStateUid(parsedRecord.state()); Set by UI
         group.setResolutionStatus(ResolutionStatus.CREATED);
         groupRepo.save(group);
         return group.getUid();
+    }
+
+    /**
+     * When inferred year is not this year: map staged game completion state to playthrough state.
+     * finishedplus or finished -> Finished; abandoned -> Abandoned; else -> Inactive.
+     */
+    private String resolvePlaythroughStateFromStagedGame(String completionStateUid, Map<String, String> completionStateUidToName) {
+        if (completionStateUid == null || completionStateUidToName == null) {
+            return playthroughStateRepo.findByName("Inactive").map(ps -> ps.getUid()).orElse(null);
+        }
+        String name = completionStateUidToName.get(completionStateUid);
+        String key = name == null ? null : name.toLowerCase().replaceAll("\\s+", "");
+        if ("finishedplus".equals(key) || "finished".equals(key)) {
+            return playthroughStateRepo.findByName("Finished").map(ps -> ps.getUid()).orElse(null);
+        }
+        if ("abandoned".equals(key)) {
+            return playthroughStateRepo.findByName("Abandoned").map(ps -> ps.getUid()).orElse(null);
+        }
+        return playthroughStateRepo.findByName("Inactive").map(ps -> ps.getUid()).orElse(null);
     }
 
     /**

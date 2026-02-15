@@ -20,7 +20,8 @@ public class IgdbImportController {
             req.externalId(),
             req.ownerType(),
             req.gameUid(),
-            req.gameInstanceUid()
+            req.gameInstanceUid(),
+            req.dlcUid()
         );
     }
 }
