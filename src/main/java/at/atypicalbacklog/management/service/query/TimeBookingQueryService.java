@@ -18,7 +18,7 @@ public class TimeBookingQueryService {
     }
 
     public List<TimeBookingResponse> findByPlaythroughUid(String playthroughUid) {
-        List<TimeBooking> bookings = repository.findByPlaythroughUid(playthroughUid);
+        List<TimeBooking> bookings = repository.findByPlaythroughUidOrderByCreationDateAsc(playthroughUid);
         return bookings.stream()
             .map(this::toResponse)
             .collect(Collectors.toList());

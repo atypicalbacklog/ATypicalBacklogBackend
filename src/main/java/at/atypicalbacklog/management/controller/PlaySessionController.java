@@ -4,19 +4,29 @@ import at.atypicalbacklog.management.domain.TimeBooking;
 import at.atypicalbacklog.management.dto.CreateRetroactiveSessionRequest;
 import at.atypicalbacklog.management.dto.StartSessionResponse;
 import at.atypicalbacklog.management.dto.StopSessionResponse;
+import at.atypicalbacklog.management.dto.TimeBookingResponse;
 import at.atypicalbacklog.management.service.TimeTrackingService;
+import at.atypicalbacklog.management.service.query.TimeBookingQueryService;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Duration;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/playthroughs/{playthroughUid}/sessions")
 public class PlaySessionController {
 
     private final TimeTrackingService service;
+    private final TimeBookingQueryService queryService;
 
-    public PlaySessionController(TimeTrackingService service) {
+    public PlaySessionController(TimeTrackingService service, TimeBookingQueryService queryService) {
         this.service = service;
+        this.queryService = queryService;
+    }
+
+    @GetMapping
+    public List<TimeBookingResponse> getAll(@PathVariable String playthroughUid) {
+        return queryService.findByPlaythroughUid(playthroughUid);
     }
 
     @PostMapping("/start")

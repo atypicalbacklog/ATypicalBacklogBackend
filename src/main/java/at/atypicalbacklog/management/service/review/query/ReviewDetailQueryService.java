@@ -43,13 +43,15 @@ public class ReviewDetailQueryService {
               COALESCE(
                 (SELECT img.uid FROM game_image img
                  WHERE img.game_instance_uid = gi.uid
+                   AND img.owner_type = 'GAME_INSTANCE'
                    AND img.type = 'COVER'
-                 ORDER BY img.primary_image DESC NULLS LAST
+                 ORDER BY img.primary_image DESC NULLS LAST, img.creation_date DESC
                  LIMIT 1),
                 (SELECT img.uid FROM game_image img
                  WHERE img.game_uid = g.uid
+                   AND img.owner_type = 'GAME'
                    AND img.type = 'COVER'
-                 ORDER BY img.primary_image DESC NULLS LAST
+                 ORDER BY img.primary_image DESC NULLS LAST, img.creation_date DESC
                  LIMIT 1)
               ) AS cover_image_uid,
 
@@ -99,13 +101,15 @@ public class ReviewDetailQueryService {
               COALESCE(
                 (SELECT img.uid FROM game_image img
                  WHERE img.game_instance_uid = gi.uid
+                   AND img.owner_type = 'GAME_INSTANCE'
                    AND img.type = 'COVER'
-                 ORDER BY img.primary_image DESC NULLS LAST
+                 ORDER BY img.primary_image DESC NULLS LAST, img.creation_date DESC
                  LIMIT 1),
                 (SELECT img.uid FROM game_image img
                  WHERE img.game_uid = g.uid
+                   AND img.owner_type = 'GAME'
                    AND img.type = 'COVER'
-                 ORDER BY img.primary_image DESC NULLS LAST
+                 ORDER BY img.primary_image DESC NULLS LAST, img.creation_date DESC
                  LIMIT 1)
               ) AS cover_image_uid,
 

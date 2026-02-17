@@ -10,5 +10,5 @@ public interface TimeBookingRepository extends JpaRepository<TimeBooking, String
 
     Optional<TimeBooking> findFirstByPlaythroughUidAndEndTimeIsNull(String playthroughUid);
 
-    List<TimeBooking> findByPlaythroughUid(String playthroughUid);
+    List<TimeBooking> findByPlaythroughUidOrderByCreationDateAsc(String playthroughUid);
 }

@@ -6,7 +6,6 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import java.sql.ResultSet;
-import java.time.LocalDate;
 import java.util.*;
 
 @Service
@@ -60,6 +59,7 @@ public class PlaythroughHistoryQueryService {
               SELECT img.uid
               FROM game_image img
               WHERE img.game_instance_uid = gi.uid
+                AND img.owner_type = 'GAME_INSTANCE'
                 AND img.type = 'COVER'
               ORDER BY img.primary_image DESC NULLS LAST, img.creation_date DESC
               LIMIT 1
@@ -69,6 +69,7 @@ public class PlaythroughHistoryQueryService {
               SELECT img.uid
               FROM game_image img
               WHERE img.game_uid = g.uid
+                AND img.owner_type = 'GAME'
                 AND img.type = 'COVER'
               ORDER BY img.primary_image DESC NULLS LAST, img.creation_date DESC
               LIMIT 1
