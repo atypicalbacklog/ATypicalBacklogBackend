@@ -1,11 +1,13 @@
 package at.atypicalbacklog.management.service.image;
 
+import at.atypicalbacklog.management.domain.Dlc;
 import at.atypicalbacklog.management.domain.Game;
 import at.atypicalbacklog.management.domain.image.*;
 import at.atypicalbacklog.management.dto.image.UpdateImageMetadataRequest;
 import at.atypicalbacklog.management.image.FilenameUtils;
 import at.atypicalbacklog.management.image.processing.ThumbnailGenerator;
 import at.atypicalbacklog.management.image.storage.ImageStorage;
+import at.atypicalbacklog.management.repository.DlcRepository;
 import at.atypicalbacklog.management.repository.GameImageRepository;
 import at.atypicalbacklog.management.repository.GameInstanceRepository;
 import at.atypicalbacklog.management.repository.GameRepository;
@@ -26,6 +28,7 @@ public class GameImageCommandService {
     private final GameImageRepository repository;
     private final GameRepository gameRepository;
     private final GameInstanceRepository gameInstanceRepository;
+    private final DlcRepository dlcRepository;
     private final ImageStorage storage;
     private final ThumbnailGenerator thumbnails;
 
@@ -33,12 +36,14 @@ public class GameImageCommandService {
         GameImageRepository repository,
         GameRepository gameRepository,
         GameInstanceRepository gameInstanceRepository,
+        DlcRepository dlcRepository,
         ImageStorage storage,
         ThumbnailGenerator thumbnails
     ) {
         this.repository = repository;
         this.gameRepository = gameRepository;
         this.gameInstanceRepository = gameInstanceRepository;
+        this.dlcRepository = dlcRepository;
         this.storage = storage;
         this.thumbnails = thumbnails;
     }
@@ -48,15 +53,16 @@ public class GameImageCommandService {
         ImageOwnerType ownerType,
         String gameUid,
         String gameInstanceUid,
+        String dlcUid,
         ImageType type,
         ImageAspectHint aspectHint,
         ImageSource source
     ) {
 
-        validateOwnership(ownerType, gameUid, gameInstanceUid);
+        validateOwnership(ownerType, gameUid, gameInstanceUid, dlcUid);
 
         String uid = UUID.randomUUID().toString();
-        String gameName = resolveGameName(ownerType, gameUid, gameInstanceUid);
+        String gameName = resolveGameName(ownerType, gameUid, gameInstanceUid, dlcUid);
         String sanitizedGameName = FilenameUtils.sanitizeGameName(gameName);
         String mimetype = file.getContentType() != null ? file.getContentType() : "image/jpeg";
         String filename = FilenameUtils.buildImageFilename(gameName, mimetype);
@@ -68,7 +74,7 @@ public class GameImageCommandService {
             ownerType,
             gameUid,
             gameInstanceUid,
-            null,
+            dlcUid,
             type,
             aspectHint,
             source,
@@ -91,7 +97,10 @@ public class GameImageCommandService {
         repository.save(image);
     }
 
-    private String resolveGameName(ImageOwnerType ownerType, String gameUid, String gameInstanceUid) {
+    private String resolveGameName(ImageOwnerType ownerType, String gameUid, String gameInstanceUid, String dlcUid) {
+        if (ownerType == ImageOwnerType.DLC && dlcUid != null) {
+            return dlcRepository.findById(dlcUid).map(Dlc::getName).orElse("image");
+        }
         if (ownerType == ImageOwnerType.GAME_INSTANCE && gameInstanceUid != null) {
             return gameInstanceRepository.findById(gameInstanceUid)
                 .map(gi -> {
@@ -113,13 +122,17 @@ public class GameImageCommandService {
     private void validateOwnership(
         ImageOwnerType ownerType,
         String gameUid,
-        String gameInstanceUid
+        String gameInstanceUid,
+        String dlcUid
     ) {
         if (ownerType == ImageOwnerType.GAME && gameUid == null) {
             throw new IllegalArgumentException("gameUid required for GAME image");
         }
         if (ownerType == ImageOwnerType.GAME_INSTANCE && gameInstanceUid == null) {
             throw new IllegalArgumentException("gameInstanceUid required for GAME_INSTANCE image");
+        }
+        if (ownerType == ImageOwnerType.DLC && dlcUid == null) {
+            throw new IllegalArgumentException("dlcUid required for DLC image");
         }
     }
 

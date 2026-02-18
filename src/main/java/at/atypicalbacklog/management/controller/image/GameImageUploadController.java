@@ -21,6 +21,7 @@ public class GameImageUploadController {
         @RequestParam ImageOwnerType ownerType,
         @RequestParam(required = false) String gameUid,
         @RequestParam(required = false) String gameInstanceUid,
+        @RequestParam(required = false) String dlcUid,
         @RequestParam ImageType type,
         @RequestParam ImageAspectHint aspectHint,
         @RequestParam ImageSource source
@@ -30,6 +31,7 @@ public class GameImageUploadController {
             ownerType,
             gameUid,
             gameInstanceUid,
+            dlcUid,
             type,
             aspectHint,
             source
