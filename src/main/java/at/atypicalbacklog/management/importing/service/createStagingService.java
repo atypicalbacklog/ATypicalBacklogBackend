@@ -151,6 +151,7 @@ public class createStagingService {
 
             stagedGame.setBacklogStartDate(parsedRecord.backlogAdded());
             stagedGame.setBacklogEndDate(parsedRecord.backlogRemoved());
+            stagedGame.setProposedFinishedDate(parsedRecord.finishedOn());
             // backlog reason set by UI
             stagedGame.setResolutionStatus(ResolutionStatus.CREATED);
             gameRepo.save(stagedGame);

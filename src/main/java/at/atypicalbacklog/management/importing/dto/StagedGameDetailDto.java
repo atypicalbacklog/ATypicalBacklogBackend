@@ -20,6 +20,7 @@ public record StagedGameDetailDto(
     LocalDate backlogStartDate,
     LocalDate backlogEndDate,
     String backlogReason,
+    LocalDate proposedFinishedDate,
     String matchedGameInstanceUid,
     ResolutionStatus resolutionStatus,
     List<StagedPlaythroughGroupSummaryDto> playthroughGroups

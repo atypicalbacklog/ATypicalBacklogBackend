@@ -74,6 +74,8 @@ public class YearlyReviewQueryService {
             review.getUid(),
             review.getYear(),
             review.isValid(),
+            review.getIntroText(),
+            review.getOutroText(),
             categories
         );
     }

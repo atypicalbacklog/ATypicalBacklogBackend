@@ -51,7 +51,9 @@ public class GameInstanceDetailQueryService {
                     gc.getGameInstanceUid(),
                     gc.getDlcUid(),
                     gc.getCompletionStateUid(),
-                    gc.getInfo()
+                    gc.getInfo(),
+                    gc.getFinishedDate(),
+                    gc.getCompletedDate()
                 ))
                 .toList();
 

@@ -18,6 +18,7 @@ public record UpdateStagedGameRequest(
     LocalDate backlogStartDate,
     LocalDate backlogEndDate,
     String backlogReason,
+    LocalDate proposedFinishedDate,
     /** Intention: UPDATED, CURATED, or FINALIZED */
     ResolutionStatus resolutionStatus
 ) {}

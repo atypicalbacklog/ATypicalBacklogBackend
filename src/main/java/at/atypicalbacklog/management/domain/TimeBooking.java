@@ -19,6 +19,9 @@ public class TimeBooking {
     private Instant startTime;
     private Instant endTime;
 
+    @Column(name = "last_sync_date")
+    private Instant lastSyncDate;
+
     protected TimeBooking() {}
 
     public TimeBooking(String uid, String playthroughUid, Instant startTime) {
@@ -54,5 +57,13 @@ public class TimeBooking {
 
     public String getPlaythroughUid() {
         return playthroughUid;
+    }
+
+    public Instant getLastSyncDate() {
+        return lastSyncDate;
+    }
+
+    public void setLastSyncDate(Instant lastSyncDate) {
+        this.lastSyncDate = lastSyncDate;
     }
 }

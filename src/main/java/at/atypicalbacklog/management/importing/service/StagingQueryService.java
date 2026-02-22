@@ -40,6 +40,7 @@ public class StagingQueryService {
             SELECT uid, proposed_name,
                    proposed_platform_uid,
                    proposed_completion_state_uid,
+                   proposed_finished_date,
                    resolution_status
             FROM staged_game
             WHERE import_batch_uid = :batch
@@ -50,6 +51,7 @@ public class StagingQueryService {
             rs.getString("proposed_name"),
             rs.getString("proposed_platform_uid"),
             rs.getString("proposed_completion_state_uid"),
+            rs.getObject("proposed_finished_date", java.time.LocalDate.class),
             rs.getString("resolution_status"),
             null
         ));
@@ -87,6 +89,7 @@ public class StagingQueryService {
             game.getBacklogStartDate(),
             game.getBacklogEndDate(),
             game.getBacklogReason(),
+            game.getProposedFinishedDate(),
             game.getMatchedGameInstanceUid(),
             game.getResolutionStatus(),
             groupDtos

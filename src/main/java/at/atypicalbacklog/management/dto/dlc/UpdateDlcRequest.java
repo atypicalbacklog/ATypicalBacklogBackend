@@ -14,5 +14,11 @@ public record UpdateDlcRequest(
     String playthroughUid,
 
     /** Optional, default false: if true and no playthroughUid given, clears playthrough link. */
-    Boolean removePreviousPlaythrough
+    Boolean removePreviousPlaythrough,
+
+    /** Optional: finished date on the DLC's game_completion. */
+    LocalDate finishedDate,
+
+    /** Optional: completed date on the DLC's game_completion. */
+    LocalDate completedDate
 ) {}

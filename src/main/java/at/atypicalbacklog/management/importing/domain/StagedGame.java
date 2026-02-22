@@ -49,6 +49,9 @@ public class StagedGame {
     @Column(name = "proposed_backlog_reason")
     private String backlogReason;
 
+    @Column(name = "proposed_finished_date")
+    private LocalDate proposedFinishedDate;
+
     @Column(name = "matched_game_instance_uid")
     private String matchedGameInstanceUid;
 
@@ -76,6 +79,7 @@ public class StagedGame {
     public LocalDate getBacklogStartDate() { return backlogStartDate; }
     public LocalDate getBacklogEndDate() { return backlogEndDate; }
     public String getBacklogReason() { return backlogReason; }
+    public LocalDate getProposedFinishedDate() { return proposedFinishedDate; }
     public String getMatchedGameInstanceUid() { return matchedGameInstanceUid; }
     public ResolutionStatus getResolutionStatus() { return resolutionStatus; }
 
@@ -143,6 +147,7 @@ public class StagedGame {
         this.backlogReason = backlogReason;
     }
 
-    
-    
+    public void setProposedFinishedDate(LocalDate proposedFinishedDate) {
+        this.proposedFinishedDate = proposedFinishedDate;
+    }
 }

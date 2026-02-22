@@ -42,6 +42,7 @@ public class StagedGameImportService {
     private final PlaythroughRepository playthroughRepo;
     private final TimeBookingRepository timeBookingRepo;
     private final BacklogRepository backlogRepo;
+    private final CompletionStateRepository completionStateRepo;
     private final IgdbImportService igdbImportService;
 
     public StagedGameImportService(
@@ -54,6 +55,7 @@ public class StagedGameImportService {
         PlaythroughRepository playthroughRepo,
         TimeBookingRepository timeBookingRepo,
         BacklogRepository backlogRepo,
+        CompletionStateRepository completionStateRepo,
         IgdbImportService igdbImportService
     ) {
         this.stagedGameRepo = stagedGameRepo;
@@ -65,6 +67,7 @@ public class StagedGameImportService {
         this.playthroughRepo = playthroughRepo;
         this.timeBookingRepo = timeBookingRepo;
         this.backlogRepo = backlogRepo;
+        this.completionStateRepo = completionStateRepo;
         this.igdbImportService = igdbImportService;
     }
 
@@ -136,13 +139,23 @@ public class StagedGameImportService {
         // 3. GameCompletion
         String completionStateUid = staged.getProposedCompletionStateUid();
         if (completionStateUid != null && !completionStateUid.isBlank()) {
+            LocalDate completedDate = null;
+            if (staged.getProposedFinishedDate() != null
+                && completionStateRepo.findById(completionStateUid)
+                    .map(CompletionState::getName)
+                    .filter(name -> name != null && "completed".equalsIgnoreCase(name.trim()))
+                    .isPresent()) {
+                completedDate = staged.getProposedFinishedDate();
+            }
             String completionUid = UUID.randomUUID().toString();
             GameCompletion completion = new GameCompletion(
                 completionUid,
                 gameInstanceUid,
                 completionStateUid,
                 null,
-                null
+                null,
+                staged.getProposedFinishedDate(),  // finishedDate from staged
+                completedDate   // completedDate when completion state fits "completed"
             );
             gameCompletionRepo.save(completion);
             log.debug("Created game_completion: uid={}", completionUid);
@@ -195,6 +208,7 @@ public class StagedGameImportService {
                     raw.getStartTime()
                 );
                 tb.stop(raw.getEndTime());
+                tb.setLastSyncDate(Instant.now());
                 timeBookingRepo.save(tb);
             }
         }

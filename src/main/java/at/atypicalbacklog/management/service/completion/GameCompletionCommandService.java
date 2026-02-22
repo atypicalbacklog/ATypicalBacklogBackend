@@ -6,6 +6,7 @@ import at.atypicalbacklog.management.dto.completion.UpdateGameCompletionRequest;
 import at.atypicalbacklog.management.repository.GameCompletionRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -33,15 +34,22 @@ public class GameCompletionCommandService {
                 req.gameInstanceUid(),
                 req.completionStateUid(),
                 req.dlcUid(),
-                req.info()
+                req.info(),
+                req.finishedDate(),
+                req.completedDate()
             ));
 
         boolean isNew = completion.getUid() == null;
         GameCompletion before = isNew ? null : completion;
 
-        completion.update(req.completionStateUid(), req.info());
+        completion.update(req.completionStateUid(), req.info(), req.finishedDate(), req.completedDate());
         repository.save(completion);
 
+        Map<String, Object> changedData = new HashMap<>();
+        changedData.put("completionStateUid", req.completionStateUid());
+        changedData.put("info", req.info());
+        changedData.put("finishedDate", req.finishedDate());
+        changedData.put("completedDate", req.completedDate());
         audit.record(
             "Update Game Completion",
             "GameCompletion",
@@ -49,10 +57,7 @@ public class GameCompletionCommandService {
             Map.of("gameInstanceUid", req.gameInstanceUid()),
             before,
             completion,
-            Map.of(
-                "completionStateUid", req.completionStateUid(),
-                "info", req.info()
-            )
+            changedData
         );
     }
 }

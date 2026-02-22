@@ -29,6 +29,8 @@ public class DlcQueryService {
               d.release_date,
               d.playthrough_uid,
               gc.completion_state_uid,
+              gc.finished_date,
+              gc.completed_date,
               (SELECT img.uid FROM game_image img
                WHERE img.dlc_uid = d.uid
                  AND img.owner_type = 'DLC'
@@ -52,7 +54,9 @@ public class DlcQueryService {
             rs.getObject("release_date", LocalDate.class),
             rs.getString("playthrough_uid"),
             rs.getString("completion_state_uid"),
-            rs.getString("cover_image_uid")
+            rs.getString("cover_image_uid"),
+            rs.getObject("finished_date", LocalDate.class),
+            rs.getObject("completed_date", LocalDate.class)
         );
     }
 }

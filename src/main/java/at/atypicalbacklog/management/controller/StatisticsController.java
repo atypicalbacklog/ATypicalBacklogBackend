@@ -19,6 +19,8 @@ public class StatisticsController {
     private final ConsoleInputStyleQueryService consoleInputService;
     private final GameRankingQueryService rankingService;
     private final BookingDurationDistributionQueryService distributionService;
+    private final BacklogCompletionGameOverviewQueryService backlogCompletionOverviewService;
+    private final GamePlayedPerYearQueryService gamePlayedPerYearService;
 
     public StatisticsController(
         YearlyActivityQueryService yearlyService,
@@ -29,7 +31,9 @@ public class StatisticsController {
         WeekdayPlaytimeQueryService weekdayService,
         ConsoleInputStyleQueryService consoleInputService,
         GameRankingQueryService rankingService,
-        BookingDurationDistributionQueryService distributionService
+        BookingDurationDistributionQueryService distributionService,
+        BacklogCompletionGameOverviewQueryService backlogCompletionOverviewService,
+        GamePlayedPerYearQueryService gamePlayedPerYearService
     ) {
         this.yearlyService = yearlyService;
         this.consoleYearService = consoleYearService;
@@ -40,6 +44,8 @@ public class StatisticsController {
         this.consoleInputService = consoleInputService;
         this.rankingService = rankingService;
         this.distributionService = distributionService;
+        this.backlogCompletionOverviewService = backlogCompletionOverviewService;
+        this.gamePlayedPerYearService = gamePlayedPerYearService;
     }
 
     // --------------------------------------------------------
@@ -144,5 +150,25 @@ public class StatisticsController {
             fromYear,
             toYear
         );
+    }
+
+    // --------------------------------------------------------
+    // 🔟 Backlog Completion Game Overview
+    // --------------------------------------------------------
+
+    @GetMapping("/backlog-completion-game-overview")
+    public List<BacklogCompletionGameOverviewDto> backlogCompletionGameOverview(
+        @RequestParam int year
+    ) {
+        return backlogCompletionOverviewService.getForYear(year);
+    }
+
+    // --------------------------------------------------------
+    // 1️⃣1️⃣ Game Played Per Year
+    // --------------------------------------------------------
+
+    @GetMapping("/game-played-per-year")
+    public List<GamePlayedPerYearDto> gamePlayedPerYear(@RequestParam int year) {
+        return gamePlayedPerYearService.getForYear(year);
     }
 }

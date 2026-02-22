@@ -13,5 +13,11 @@ public record CreateDlcRequest(
     String completionStateUid,
 
     /** Optional: info text for the DLC's game_completion. */
-    String info
+    String info,
+
+    /** Optional: finished date on the DLC's game_completion. */
+    LocalDate finishedDate,
+
+    /** Optional: completed date on the DLC's game_completion. */
+    LocalDate completedDate
 ) {}

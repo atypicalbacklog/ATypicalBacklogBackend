@@ -61,7 +61,9 @@ public class GameInstanceService {
             instance.getUid(),
             noneStateUid,
             null,  // dlc_uid
-            null   // info
+            null,  // info
+            null,  // finishedDate
+            null   // completedDate
         );
         gameCompletionRepo.save(gc);
 
@@ -112,7 +114,9 @@ public class GameInstanceService {
                 uid,
                 noneStateUid,
                 null,  // dlc_uid
-                null   // info
+                null,  // info
+                null,  // finishedDate
+                null   // completedDate
             );
             gameCompletionRepo.save(gc);
         }

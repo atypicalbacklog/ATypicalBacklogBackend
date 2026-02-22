@@ -26,7 +26,7 @@ public class GameOverviewQueryService {
 
         String sql = instanceSql;
 
-        if (Boolean.TRUE.equals(req.includeDlc())) {
+        if (Boolean.TRUE.equals(req.includeDlc()) && !Boolean.FALSE.equals(req.onlyGamesWithDlc())) {
             String dlcSql = buildDlcQuery(req);
             sql = "(" + instanceSql + ") UNION ALL (" + dlcSql + ")";
         }
@@ -279,6 +279,14 @@ public class GameOverviewQueryService {
         if (Boolean.TRUE.equals(req.onlyGamesWithDlc())) {
             sb.append("""
                 AND EXISTS (
+                    SELECT 1 FROM game_instance gi2
+                    JOIN dlc d ON d.game_instance_uid = gi2.uid
+                    WHERE gi2.game_uid = g.uid
+                )
+                """);
+        } else if (Boolean.FALSE.equals(req.onlyGamesWithDlc())) {
+            sb.append("""
+                AND NOT EXISTS (
                     SELECT 1 FROM game_instance gi2
                     JOIN dlc d ON d.game_instance_uid = gi2.uid
                     WHERE gi2.game_uid = g.uid

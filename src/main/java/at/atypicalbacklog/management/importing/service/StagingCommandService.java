@@ -44,6 +44,7 @@ public class StagingCommandService {
         if (req.backlogStartDate() != null) game.setBacklogStartDate(req.backlogStartDate());
         if (req.backlogEndDate() != null) game.setBacklogEndDate(req.backlogEndDate());
         if (req.backlogReason() != null) game.setBacklogReason(req.backlogReason());
+        if (req.proposedFinishedDate() != null) game.setProposedFinishedDate(req.proposedFinishedDate());
         if (req.resolutionStatus() != null) game.setResolutionStatus(req.resolutionStatus());
         StagedGame saved = gameRepo.save(game);
         if (saved.getResolutionStatus() == ResolutionStatus.FINALIZED) {

@@ -13,7 +13,7 @@ public record GameOverviewQueryRequest(
     List<String> completionStateUids,
     List<String> playthroughTypeUids,  // filter by playthrough type UIDs
     Boolean includeDlc,                // when true, include DLC rows in result
-    Boolean onlyGamesWithDlc,          // when true, only games that have at least one DLC
+    Boolean onlyGamesWithDlc,          // true: only games with ≥1 DLC; false: only games with no DLC; null: no filter
 
     SortMode sortMode
 

@@ -63,7 +63,9 @@ public class DlcCommandService {
             dlc.getGameInstanceUid(),
             completionStateUid,
             dlc.getUid(),
-            req.info()
+            req.info(),
+            req.finishedDate(),
+            req.completedDate()
         );
         gameCompletionRepo.save(gc);
 
@@ -83,7 +85,7 @@ public class DlcCommandService {
             null
         );
 
-        return toResponse(dlc, completionStateUid);
+        return toResponse(dlc, completionStateUid, gc.getFinishedDate(), gc.getCompletedDate());
     }
 
     /** Update DLC */
@@ -104,12 +106,14 @@ public class DlcCommandService {
 
         repository.save(dlc);
 
-        if (req.completionStateUid() != null) {
-            gameCompletionRepo.findByDlcUid(uid).ifPresent(gc -> {
-                gc.update(req.completionStateUid(), gc.getInfo());
+        gameCompletionRepo.findByDlcUid(uid).ifPresent(gc -> {
+            String state = req.completionStateUid() != null ? req.completionStateUid() : gc.getCompletionStateUid();
+            String info = gc.getInfo();
+            if (req.completionStateUid() != null || req.finishedDate() != null || req.completedDate() != null) {
+                gc.update(state, info, req.finishedDate(), req.completedDate());
                 gameCompletionRepo.save(gc);
-            });
-        }
+            }
+        });
 
         audit.record(
             "Update DLC",
@@ -121,13 +125,15 @@ public class DlcCommandService {
             req
         );
 
-        String completionStateUid = gameCompletionRepo.findByDlcUid(uid)
-            .map(gc -> gc.getCompletionStateUid())
-            .orElse(null);
-        return toResponse(dlc, completionStateUid);
+        var gc = gameCompletionRepo.findByDlcUid(uid).orElse(null);
+        String completionStateUid = gc != null ? gc.getCompletionStateUid() : null;
+        java.time.LocalDate finishedDate = gc != null ? gc.getFinishedDate() : null;
+        java.time.LocalDate completedDate = gc != null ? gc.getCompletedDate() : null;
+        return toResponse(dlc, completionStateUid, finishedDate, completedDate);
     }
 
-    private DlcResponse toResponse(Dlc dlc, String completionStateUid) {
+    private DlcResponse toResponse(Dlc dlc, String completionStateUid,
+                                   java.time.LocalDate finishedDate, java.time.LocalDate completedDate) {
         return new DlcResponse(
             dlc.getUid(),
             dlc.getGameInstanceUid(),
@@ -136,7 +142,9 @@ public class DlcCommandService {
             dlc.getReleaseDate(),
             dlc.getPlaythroughUid(),
             completionStateUid,
-            null
+            null,
+            finishedDate,
+            completedDate
         );
     }
 }

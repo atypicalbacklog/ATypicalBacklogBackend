@@ -55,6 +55,11 @@ dependencies {
     // CSV parsing
     implementation("org.apache.commons:commons-csv:1.14.1")
 
+    // Google Calendar API (sync time bookings)
+    implementation("com.google.api-client:google-api-client:2.2.0")
+    implementation("com.google.apis:google-api-services-calendar:v3-rev20251207-2.0.0")
+    implementation("com.google.auth:google-auth-library-oauth2-http:1.25.0")
+
     // Test
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 }

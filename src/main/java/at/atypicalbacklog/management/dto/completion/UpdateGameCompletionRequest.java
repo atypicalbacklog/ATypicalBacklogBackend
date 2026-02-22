@@ -1,8 +1,12 @@
 package at.atypicalbacklog.management.dto.completion;
 
+import java.time.LocalDate;
+
 public record UpdateGameCompletionRequest(
     String gameInstanceUid,
     String completionStateUid,
     String dlcUid,
-    String info
+    String info,
+    LocalDate finishedDate,
+    LocalDate completedDate
 ) {}
