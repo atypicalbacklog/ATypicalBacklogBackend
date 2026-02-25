@@ -44,6 +44,8 @@ public class BacklogCompletionGameOverviewQueryService {
               bcgo.backlog_uid,
               bcgo.platform_uid,
               bcgo.game_completion_uid,
+              bcgo.variant_uid,
+              bcgo.console_uid,
               COALESCE(
                 (SELECT img.uid FROM game_image img
                  WHERE img.game_instance_uid = bcgo.game_instance_uid
@@ -86,6 +88,8 @@ public class BacklogCompletionGameOverviewQueryService {
             rs.getString("backlog_uid"),
             rs.getString("platform_uid"),
             rs.getString("game_completion_uid"),
+            rs.getString("variant_uid"),
+            rs.getString("console_uid"),
             rs.getString("cover_image_uid")
         );
     }

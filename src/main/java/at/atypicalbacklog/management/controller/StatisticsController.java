@@ -12,6 +12,7 @@ public class StatisticsController {
 
     private final YearlyActivityQueryService yearlyService;
     private final ConsoleYearActivityQueryService consoleYearService;
+    private final ConsoleYearVariantActivityQueryService consoleYearVariantService;
     private final VariantYearActivityQueryService variantYearService;
     private final MonthlyPlaytimeQueryService monthlyService;
     private final WeeklyPlaytimeQueryService weeklyService;
@@ -25,6 +26,7 @@ public class StatisticsController {
     public StatisticsController(
         YearlyActivityQueryService yearlyService,
         ConsoleYearActivityQueryService consoleYearService,
+        ConsoleYearVariantActivityQueryService consoleYearVariantService,
         VariantYearActivityQueryService variantYearService,
         MonthlyPlaytimeQueryService monthlyService,
         WeeklyPlaytimeQueryService weeklyService,
@@ -37,6 +39,7 @@ public class StatisticsController {
     ) {
         this.yearlyService = yearlyService;
         this.consoleYearService = consoleYearService;
+        this.consoleYearVariantService = consoleYearVariantService;
         this.variantYearService = variantYearService;
         this.monthlyService = monthlyService;
         this.weeklyService = weeklyService;
@@ -66,6 +69,17 @@ public class StatisticsController {
         @RequestParam int year
     ) {
         return consoleYearService.getForYear(year);
+    }
+
+    // --------------------------------------------------------
+    // 2b Console Year Variant Activity
+    // --------------------------------------------------------
+
+    @GetMapping("/console-year-variant-activity")
+    public List<ConsoleYearVariantActivityDto> consoleYearVariantActivity(
+        @RequestParam int year
+    ) {
+        return consoleYearVariantService.getForYear(year);
     }
 
     // --------------------------------------------------------

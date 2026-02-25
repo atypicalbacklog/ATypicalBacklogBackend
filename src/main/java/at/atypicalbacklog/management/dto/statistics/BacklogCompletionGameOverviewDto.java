@@ -20,6 +20,8 @@ public record BacklogCompletionGameOverviewDto(
     String backlogUid,
     String platformUid,
     String gameCompletionUid,
+    String variantUid,
+    String consoleUid,
     /** Preferred cover: instance cover if present, else game cover (same logic as elsewhere). */
     String coverImageUid
 ) {}
