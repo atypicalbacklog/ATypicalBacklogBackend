@@ -1,6 +1,5 @@
 package at.atypicalbacklog.management.importing.service;
 
-import at.atypicalbacklog.management.dto.reference.ReferenceDataResponse;
 import at.atypicalbacklog.management.importing.ResolutionStatus;
 import at.atypicalbacklog.management.importing.domain.*;
 import at.atypicalbacklog.management.importing.parser.model.*;
@@ -9,9 +8,8 @@ import at.atypicalbacklog.management.importing.repository.ImportRecordRepository
 import at.atypicalbacklog.management.importing.repository.StagedGameRepository;
 import at.atypicalbacklog.management.importing.repository.StagedPlaythroughGroupRepository;
 import at.atypicalbacklog.management.importing.repository.StagedTimeBookingRawRepository;
-import at.atypicalbacklog.management.repository.PlaythroughStateRepository;
-import at.atypicalbacklog.management.service.ReferenceDataService;
-import at.atypicalbacklog.management.service.ReferenceDataService.PlatformConsoleInfo;
+import at.atypicalbacklog.management.reference.repository.PlaythroughStateRepository;
+import at.atypicalbacklog.management.reference.service.ReferenceDataService;
 import jakarta.transaction.Transactional;
 
 import org.slf4j.Logger;
@@ -22,7 +20,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Year;
 import java.time.ZoneOffset;

@@ -1,7 +1,15 @@
 package at.atypicalbacklog.management.importing.service;
 
-import at.atypicalbacklog.management.domain.*;
-import at.atypicalbacklog.management.domain.image.ImageOwnerType;
+import at.atypicalbacklog.management.backlog.domain.BacklogEntry;
+import at.atypicalbacklog.management.backlog.repository.BacklogRepository;
+import at.atypicalbacklog.management.completion.domain.GameCompletion;
+import at.atypicalbacklog.management.completion.repository.GameCompletionRepository;
+import at.atypicalbacklog.management.game.domain.Game;
+import at.atypicalbacklog.management.game.domain.GameInstance;
+import at.atypicalbacklog.management.game.repository.GameInstanceRepository;
+import at.atypicalbacklog.management.game.repository.GameRepository;
+import at.atypicalbacklog.management.image.domain.ImageOwnerType;
+import at.atypicalbacklog.management.external.igdb.service.IgdbImportService;
 import at.atypicalbacklog.management.importing.ResolutionStatus;
 import at.atypicalbacklog.management.importing.domain.StagedGame;
 import at.atypicalbacklog.management.importing.domain.StagedPlaythroughGroup;
@@ -9,8 +17,13 @@ import at.atypicalbacklog.management.importing.domain.StagedTimeBookingRaw;
 import at.atypicalbacklog.management.importing.repository.StagedGameRepository;
 import at.atypicalbacklog.management.importing.repository.StagedPlaythroughGroupRepository;
 import at.atypicalbacklog.management.importing.repository.StagedTimeBookingRawRepository;
-import at.atypicalbacklog.management.repository.*;
-import at.atypicalbacklog.management.service.external.igdb.IgdbImportService;
+import at.atypicalbacklog.management.playthrough.domain.Playthrough;
+import at.atypicalbacklog.management.playthrough.repository.PlaythroughRepository;
+import at.atypicalbacklog.management.reference.domain.CompletionState;
+import at.atypicalbacklog.management.reference.repository.CompletionStateRepository;
+import at.atypicalbacklog.management.timetracking.domain.TimeBooking;
+import at.atypicalbacklog.management.timetracking.repository.TimeBookingRepository;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
