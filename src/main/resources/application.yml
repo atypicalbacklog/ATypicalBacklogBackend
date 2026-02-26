@@ -1,9 +1,44 @@
+# Business timezone for "noon" (retroactive sessions) and LocalDate interpretation. Not used for API output.
+# API always sends timestamps as UTC (Instant with Z). DB connection uses UTC so stored/read values are UTC.
+app:
+  timezone: Europe/Vienna
+  image:
+    # Root directory for stored game images (original + thumbnail). Relative to process CWD or absolute path.
+    storage:
+      root-path: image-storage
+  igdb:
+    # Twitch/IGDB API credentials. Prefer env vars IGDB_CLIENT_ID / IGDB_CLIENT_SECRET.
+    client-id: CLIENT_ID
+    client-secret: CLIENT_SECRET
+  google:
+    calendar:
+      # When false, scheduled sync does nothing (endpoint still works). Default: false.
+      activate-google-sync: false
+      # Calendar ID to sync time bookings to (e.g. primary or email for primary calendar). When empty, sync is skipped.
+      id: CALENDAR_ID
+      # Path to SERVICE ACCOUNT JSON key (IAM → Service Accounts → Keys → JSON). Not OAuth client JSON.
+      # Relative to process CWD (e.g. project root); or use absolute path.
+      #credentials-path: ${GOOGLE_CALENDAR_CREDENTIALS_PATH:}
+      credentials-path: ServiceAccountKey.json
+      # Delay between sync runs in milliseconds (only runs when calendar is configured).
+      sync-interval-ms: 900000
+
 spring:
   application:
     name: atypicalbacklog-management
 
+  # Do not set jackson.time-zone for API timestamps: Instant is always serialized as UTC (Z).
+  # Setting a zone here would only affect other types; keep API output consistently UTC.
+
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
   datasource:
-    url: jdbc:postgresql://localhost:5432/postgres
+    url: jdbc:postgresql://HOST:PORT/DATABASE_NAME?options=-c%20TimeZone%3DUTC
+    username: USERNAME
+    password: DATABASE_PASSWORD
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -13,10 +48,6 @@ spring:
     properties:
       hibernate:
         format_sql: true
-
-  flyway:
-    enabled: true
-    locations: classpath:db/migration
 
 management:
   endpoints:

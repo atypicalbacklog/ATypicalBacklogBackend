@@ -1,6 +1,7 @@
 package at.atypicalbacklog.management.image.storage;
 
 import at.atypicalbacklog.management.image.FilenameUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
@@ -11,7 +12,11 @@ import java.util.Optional;
 @Component
 public class FileSystemImageStorage implements ImageStorage {
 
-    private final Path root = Path.of("image-storage");
+    private final Path root;
+
+    public FileSystemImageStorage(@Value("${app.image.storage.root-path}") String rootPath) {
+        this.root = Path.of(rootPath);
+    }
 
     @Override
     public void storeOriginal(String imageUid, InputStream data, String mimetype, String sanitizedGameName) {

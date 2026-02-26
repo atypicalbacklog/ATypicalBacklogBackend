@@ -19,7 +19,7 @@ public class IgdbClient {
     public String post(String endpoint, String body) {
 
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Client-ID", IgdbAuthService.CLIENT_ID);
+        headers.set("Client-ID", auth.getClientId());
         headers.setBearerAuth(auth.getAccessToken());
         headers.setContentType(MediaType.TEXT_PLAIN);
 
