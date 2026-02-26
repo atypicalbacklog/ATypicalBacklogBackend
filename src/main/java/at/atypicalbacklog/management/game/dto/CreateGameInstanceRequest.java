@@ -1,0 +1,21 @@
+package at.atypicalbacklog.management.game.dto;
+
+import java.time.LocalDate;
+
+public record CreateGameInstanceRequest(
+    String gameUid,
+    String platformUid,
+    String variantUid,
+
+    // optional
+    String name,
+    LocalDate releaseDate,
+    String originalConsoleUid,
+    LocalDate receivedDate,
+
+    Boolean forFree,
+    Boolean inPossession,
+
+    /** Optional IGDB game ID (external reference). */
+    String externalIgdbId
+) {}

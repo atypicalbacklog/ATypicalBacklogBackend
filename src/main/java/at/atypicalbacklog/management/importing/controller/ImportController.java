@@ -5,7 +5,6 @@ import at.atypicalbacklog.management.importing.service.ImportBatchService;
 import at.atypicalbacklog.management.importing.service.createStagingService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
