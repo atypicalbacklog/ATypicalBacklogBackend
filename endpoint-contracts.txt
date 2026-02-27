@@ -1,9 +1,28 @@
 ================================================================================
 ATYPICAL BACKLOG MANAGEMENT API - ENDPOINT CONTRACTS
 ================================================================================
-Version: 30
+Version: 31
 Base URL: http://localhost:8080
 API Prefix: /api
+
+================================================================================
+0. APP CONFIG
+================================================================================
+Base Path: /api/app-config
+
+--------------------------------------------------------------------------------
+0.1 Get App Config
+--------------------------------------------------------------------------------
+Method: GET
+Path: /api/app-config
+
+Response: 200 OK
+{
+  "mode": "MANAGEMENT" | "PUBLIC"
+}
+
+Notes:
+- Value is from application.yml (app.mode). Allowed values: MANAGEMENT, PUBLIC. Default (if unset or invalid): PUBLIC.
 
 ================================================================================
 1. GAME ENDPOINTS
@@ -2033,5 +2052,5 @@ NOTES
 - The API uses Spring Boot's default error handling
 
 ================================================================================
-Generated: 2026-02-25  |  Document version: 30
+Generated: 2026-02-27  |  Document version: 31
 ================================================================================

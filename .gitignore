@@ -28,8 +28,11 @@ replay_pid*
 
 # gradle / build folders
 .gradle
+.gradle/*
 **/build/
 !**/src/**/build/
 
 # image folder
 image-storage/
+
+src/main/resources/static
