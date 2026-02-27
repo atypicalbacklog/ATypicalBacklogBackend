@@ -9,5 +9,5 @@ import java.util.List;
 public interface InputRepository
     extends JpaRepository<Input, String> {
 
-    List<Input> findAllByOrderByNameAsc();
+    List<Input> findAllByHideInChoicesFalseOrderByNameAsc();
 }

@@ -19,9 +19,13 @@ public class Input {
     @Column(name = "platform_uid")
     private String platformUid;
 
+    @Column(name = "hideinchoices", nullable = false)
+    private boolean hideInChoices;
+
     protected Input() {}
 
     public String getUid() { return uid; }
     public String getName() { return name; }
     public String getPlatformUid() { return platformUid; }
+    public boolean isHideInChoices() { return hideInChoices; }
 }

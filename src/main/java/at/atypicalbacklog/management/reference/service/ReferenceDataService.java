@@ -68,7 +68,7 @@ public class ReferenceDataService {
                     ))
                     .toList(),
 
-                inputRepo.findAllByOrderByNameAsc()
+                inputRepo.findAllByHideInChoicesFalseOrderByNameAsc()
                     .stream()
                     .map(e -> new InputDto(e.getUid(), e.getName(), e.getPlatformUid()))
                     .toList(),
