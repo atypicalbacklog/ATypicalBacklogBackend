@@ -146,23 +146,23 @@ public class GameImageCommandService {
         GameImage image = repository.findById(uid)
             .orElseThrow(() -> new IllegalArgumentException("Image not found"));
 
-        if (req.ownerType() != null) image.setOwnerType(req.ownerType());
-        if (req.gameUid() != null) image.setGameUid(req.gameUid());
-        if (req.gameInstanceUid() != null) image.setGameInstanceUid(req.gameInstanceUid());
-        if (req.dlcUid() != null) image.setDlcUid(req.dlcUid());
+        if (req.getOwnerType() != null) image.setOwnerType(req.getOwnerType());
+        if (req.hasGameUid()) image.setGameUid(req.getGameUid());
+        if (req.hasGameInstanceUid()) image.setGameInstanceUid(req.getGameInstanceUid());
+        if (req.hasDlcUid()) image.setDlcUid(req.getDlcUid());
 
-        ImageType newType = req.type() != null ? req.type() : image.getType();
+        ImageType newType = req.getType() != null ? req.getType() : image.getType();
 
         // Handle primary change explicitly
-        if (Boolean.TRUE.equals(req.primaryImage())) {
+        if (Boolean.TRUE.equals(req.getPrimaryImage())) {
             unsetOtherPrimaries(image, newType);
             image.setPrimaryImage(true);
-        } else if (Boolean.FALSE.equals(req.primaryImage())) {
+        } else if (Boolean.FALSE.equals(req.getPrimaryImage())) {
             image.setPrimaryImage(false);
         }
 
-        if (req.type() != null) image.setType(req.type());
-        if (req.aspectHint() != null) image.setAspectHint(req.aspectHint());
+        if (req.getType() != null) image.setType(req.getType());
+        if (req.getAspectHint() != null) image.setAspectHint(req.getAspectHint());
 
         repository.save(image);
     }

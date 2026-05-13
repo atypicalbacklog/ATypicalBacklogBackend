@@ -1,12 +1,10 @@
 package at.atypicalbacklog.management.game.controller;
 
 import at.atypicalbacklog.management.game.dto.GameOverviewQueryRequest;
-import at.atypicalbacklog.management.game.dto.GameOverviewRowDto;
+import at.atypicalbacklog.management.game.dto.GameOverviewQueryResponseDto;
 import at.atypicalbacklog.management.game.service.GameOverviewQueryService;
 
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/query/game-overview")
@@ -19,7 +17,7 @@ public class GameOverviewController {
     }
 
     @PostMapping
-    public List<GameOverviewRowDto> query(@RequestBody GameOverviewQueryRequest request) {
+    public GameOverviewQueryResponseDto query(@RequestBody GameOverviewQueryRequest request) {
         return service.query(request);
     }
 }

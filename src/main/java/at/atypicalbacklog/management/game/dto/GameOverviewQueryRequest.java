@@ -15,7 +15,16 @@ public record GameOverviewQueryRequest(
     Boolean includeDlc,                // when true, include DLC rows in result
     Boolean onlyGamesWithDlc,          // true: only games with ≥1 DLC; false: only games with no DLC; null: no filter
 
-    SortMode sortMode
+    SortMode sortMode,
+
+    Integer pageSize,                  // optional keyset page size
+    String cursorGameName,             // keyset cursor (NAME_ASC)
+    String cursorInstanceName,         // keyset cursor (NAME_ASC)
+    String cursorDlcName,              // keyset cursor (NAME_ASC)
+    String cursorGameUid,              // keyset cursor (NAME_ASC)
+    String cursorGameInstanceUid,      // keyset cursor (NAME_ASC)
+    String cursorDlcUid,               // keyset cursor (NAME_ASC; null means empty sentinel)
+    Boolean cursorIsDlc                // keyset cursor (NAME_ASC)
 
 ) {
     public enum SortMode {

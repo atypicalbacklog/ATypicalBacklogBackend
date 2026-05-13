@@ -144,7 +144,7 @@ public class StagingQueryService {
      */
     public List<StagedPlaythroughGroupSummaryDto> listPlaythroughGroupsByUnmapped(boolean unmapped) {
         List<StagedPlaythroughGroup> groups = unmapped
-            ? groupRepo.findByStagedGameUidIsNull()
+            ? groupRepo.findByStagedGameUidIsNullAndResolutionStatusNot(ResolutionStatus.IMPORTED)
             : groupRepo.findByStagedGameUidIsNotNullAndResolutionStatusNot(ResolutionStatus.IMPORTED);
         return groups.stream()
             .map(g -> new StagedPlaythroughGroupSummaryDto(

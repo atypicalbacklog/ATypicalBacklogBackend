@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+
+    <springProperty scope="context" name="LOG_PATH" source="logging.file.path" defaultValue="logs"/>
+
+    <!-- Console (unchanged) -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${CONSOLE_LOG_PATTERN}</pattern>
+            <charset>${CONSOLE_LOG_CHARSET:-UTF-8}</charset>
+        </encoder>
+    </appender>
+
+    <!-- File: rotate every month or when file &gt; 10 MB -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/application.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/application.%d{yyyy-MM}.%i.log</fileNamePattern>
+            <maxFileSize>10MB</maxFileSize>
+            <maxHistory>12</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${FILE_LOG_PATTERN}</pattern>
+            <charset>${FILE_LOG_CHARSET:-UTF-8}</charset>
+        </encoder>
+    </appender>
+
+    <!-- Application packages: level from logging.level.at.atypicalbacklog (default INFO) -->
+    <logger name="at.atypicalbacklog" level="INFO" additivity="true"/>
+
+    <!-- JDK / Jakarta: reduce noise, level from logging.level.java / javax (default WARN) -->
+    <logger name="java" level="WARN" additivity="true"/>
+    <logger name="javax" level="WARN" additivity="true"/>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE"/>
+    </root>
+</configuration>

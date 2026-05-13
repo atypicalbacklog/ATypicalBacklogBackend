@@ -1,6 +1,8 @@
 # Business timezone for "noon" (retroactive sessions) and LocalDate interpretation. Not used for API output.
 # API always sends timestamps as UTC (Instant with Z). DB connection uses UTC so stored/read values are UTC.
 app:
+  # App mode exposed at GET /api/app-config. Allowed: MANAGEMENT, PUBLIC. Default if unset: PUBLIC.
+  mode: MANAGEMENT
   timezone: Europe/Vienna
   image:
     # Root directory for stored game images (original + thumbnail). Relative to process CWD or absolute path.
@@ -48,6 +50,17 @@ spring:
     properties:
       hibernate:
         format_sql: true
+  resources:
+    add-mappings: true
+
+logging:
+  # Directory for log files (used by logback-spring.xml). Relative to CWD or absolute.
+  file:
+    path: logs
+  level:
+    at.atypicalbacklog: INFO   # application packages (use DEBUG for more detail)
+    java: WARN                 # JDK (e.g. SQL, HTTP client)
+    javax: WARN                # Jakarta / JEE
 
 management:
   endpoints:

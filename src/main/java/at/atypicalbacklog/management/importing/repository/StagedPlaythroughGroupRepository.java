@@ -18,4 +18,7 @@ public interface StagedPlaythroughGroupRepository
 
     /** Groups that have a staged game assigned. */
     List<StagedPlaythroughGroup> findByStagedGameUidIsNotNullAndResolutionStatusNot(ResolutionStatus status);
+
+    /** Groups that have no staged game assigned and are not imported. */
+    List<StagedPlaythroughGroup> findByStagedGameUidIsNullAndResolutionStatusNot(ResolutionStatus status);
 }

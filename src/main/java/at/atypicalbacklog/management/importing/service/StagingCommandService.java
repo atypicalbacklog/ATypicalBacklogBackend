@@ -36,9 +36,12 @@ public class StagingCommandService {
         if (req.proposedReceivedDate() != null) game.setProposedReceivedDate(req.proposedReceivedDate());
         if (req.proposedVariantUid() != null) game.setProposedVariantUid(req.proposedVariantUid());
         if (req.proposedPlatformUid() != null) game.setProposedPlatformUid(req.proposedPlatformUid());
-        if (req.matchedGameUid() != null) game.setMatchedGameUid(req.matchedGameUid());
-        if (req.matchedGameInstanceUid() != null) game.setMatchedGameInstanceUid(req.matchedGameInstanceUid());
-        if (req.matchedExternalIgdbId() != null) game.setMatchedExternalIgdbId(req.matchedExternalIgdbId());
+        //if (req.matchedGameUid() != null) game.setMatchedGameUid(req.matchedGameUid());
+        //if (req.matchedGameInstanceUid() != null) game.setMatchedGameInstanceUid(req.matchedGameInstanceUid());
+        //if (req.matchedExternalIgdbId() != null) game.setMatchedExternalIgdbId(req.matchedExternalIgdbId());
+        game.setMatchedGameUid(req.matchedGameUid());
+        game.setMatchedGameInstanceUid(req.matchedGameInstanceUid());
+        game.setMatchedExternalIgdbId(req.matchedExternalIgdbId());
         if (req.matchedOriginalConsoleUid() != null) game.setMatchedOriginalConsoleUid(req.matchedOriginalConsoleUid());
         if (req.proposedCompletionStateUid() != null) game.setProposedCompletionStateUid(req.proposedCompletionStateUid());
         if (req.backlogStartDate() != null) game.setBacklogStartDate(req.backlogStartDate());

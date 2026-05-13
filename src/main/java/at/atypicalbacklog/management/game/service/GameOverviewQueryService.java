@@ -1,6 +1,7 @@
 package at.atypicalbacklog.management.game.service;
 
 import at.atypicalbacklog.management.game.dto.GameOverviewQueryRequest;
+import at.atypicalbacklog.management.game.dto.GameOverviewQueryResponseDto;
 import at.atypicalbacklog.management.game.dto.GameOverviewRowDto;
 
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -10,6 +11,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class GameOverviewQueryService {
@@ -20,22 +22,135 @@ public class GameOverviewQueryService {
         this.jdbc = jdbc;
     }
 
-    public List<GameOverviewRowDto> query(GameOverviewQueryRequest req) {
+    public GameOverviewQueryResponseDto query(GameOverviewQueryRequest req) {
+        validateKeysetRequest(req);
 
-        String instanceSql = buildInstanceQuery(req);
         Map<String, Object> params = new HashMap<>();
         collectParams(req, params);
 
-        String sql = instanceSql;
+        String baseSql = buildBaseQuery(req);
+        Counts totalCounts = queryTotalCounts(baseSql, params);
 
-        if (Boolean.TRUE.equals(req.includeDlc()) && !Boolean.FALSE.equals(req.onlyGamesWithDlc())) {
-            String dlcSql = buildDlcQuery(req);
-            sql = "(" + instanceSql + ") UNION ALL (" + dlcSql + ")";
+        String dataSql = "SELECT * FROM (" + baseSql + ") q";
+        dataSql += buildKeysetCondition(req, params);
+        dataSql += buildOrderBy(req);
+
+        if (req.pageSize() != null && req.pageSize() > 0) {
+            params.put("pageSize", req.pageSize());
+            dataSql += " LIMIT :pageSize";
         }
 
-        sql += buildOrderBy(req);
+        List<GameOverviewRowDto> rows = jdbc.query(dataSql, params, this::mapRow);
 
-        return jdbc.query(sql, params, this::mapRow);
+        Set<String> pageGames = rows.stream()
+            .map(GameOverviewRowDto::gameUid)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toSet());
+        Set<String> pageInstances = rows.stream()
+            .map(GameOverviewRowDto::gameInstanceUid)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toSet());
+        long pageDlcCount = rows.stream().filter(GameOverviewRowDto::isDlc).count();
+
+        return new GameOverviewQueryResponseDto(
+            rows,
+            totalCounts.gameCount(),
+            totalCounts.gameInstanceCount(),
+            totalCounts.dlcCount(),
+            pageGames.size(),
+            pageInstances.size(),
+            pageDlcCount
+        );
+    }
+
+    private record Counts(long gameCount, long gameInstanceCount, long dlcCount) {}
+
+    private Counts queryTotalCounts(String baseSql, Map<String, Object> params) {
+        String countSql = """
+            SELECT
+              COUNT(DISTINCT q.game_uid) AS game_count,
+              COUNT(DISTINCT q.game_instance_uid) AS game_instance_count,
+              COUNT(*) FILTER (WHERE q.is_dlc) AS dlc_count
+            FROM (
+            """ + baseSql + """
+            ) q
+            """;
+        return jdbc.queryForObject(countSql, params, (rs, i) -> new Counts(
+            rs.getLong("game_count"),
+            rs.getLong("game_instance_count"),
+            rs.getLong("dlc_count")
+        ));
+    }
+
+    private String buildBaseQuery(GameOverviewQueryRequest req) {
+        String instanceSql = buildInstanceQuery(req);
+        if (Boolean.TRUE.equals(req.includeDlc()) && !Boolean.FALSE.equals(req.onlyGamesWithDlc())) {
+            String dlcSql = buildDlcQuery(req);
+            return "(" + instanceSql + ") UNION ALL (" + dlcSql + ")";
+        }
+        return instanceSql;
+    }
+
+    private void validateKeysetRequest(GameOverviewQueryRequest req) {
+        boolean hasCursor = req.cursorGameName() != null
+            || req.cursorInstanceName() != null
+            || req.cursorDlcName() != null
+            || req.cursorGameUid() != null
+            || req.cursorGameInstanceUid() != null
+            || req.cursorDlcUid() != null
+            || req.cursorIsDlc() != null;
+
+        if (!hasCursor) {
+            return;
+        }
+
+        GameOverviewQueryRequest.SortMode mode =
+            req.sortMode() != null ? req.sortMode() : GameOverviewQueryRequest.SortMode.NAME_ASC;
+        if (mode != GameOverviewQueryRequest.SortMode.NAME_ASC) {
+            throw new IllegalArgumentException("Keyset pagination is currently supported only for NAME_ASC sortMode");
+        }
+    }
+
+    private String buildKeysetCondition(GameOverviewQueryRequest req, Map<String, Object> params) {
+        boolean hasCursor = req.cursorGameName() != null
+            || req.cursorInstanceName() != null
+            || req.cursorDlcName() != null
+            || req.cursorGameUid() != null
+            || req.cursorGameInstanceUid() != null
+            || req.cursorDlcUid() != null
+            || req.cursorIsDlc() != null;
+
+        if (!hasCursor) {
+            return "";
+        }
+
+        params.put("cursorGameName", req.cursorGameName() != null ? req.cursorGameName() : "");
+        params.put("cursorInstanceName", req.cursorInstanceName() != null ? req.cursorInstanceName() : "\uFFFF");
+        params.put("cursorDlcName", req.cursorDlcName() != null ? req.cursorDlcName() : "\uFFFF");
+        params.put("cursorGameUid", req.cursorGameUid() != null ? req.cursorGameUid() : "");
+        params.put("cursorGameInstanceUid", req.cursorGameInstanceUid() != null ? req.cursorGameInstanceUid() : "");
+        params.put("cursorDlcUid", req.cursorDlcUid() != null ? req.cursorDlcUid() : "");
+        params.put("cursorIsDlc", Boolean.TRUE.equals(req.cursorIsDlc()));
+
+        return """
+            WHERE (
+              COALESCE(q.game_name, ''),
+              COALESCE(q.instance_name, '\uFFFF'),
+              COALESCE(q.dlc_name, '\uFFFF'),
+              q.game_uid,
+              q.game_instance_uid,
+              COALESCE(q.dlc_uid, ''),
+              q.is_dlc
+            ) > (
+              :cursorGameName,
+              :cursorInstanceName,
+              :cursorDlcName,
+              :cursorGameUid,
+              :cursorGameInstanceUid,
+              :cursorDlcUid,
+              :cursorIsDlc
+            )
+            """;
     }
 
     private String buildInstanceQuery(GameOverviewQueryRequest req) {
