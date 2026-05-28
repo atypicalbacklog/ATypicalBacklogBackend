@@ -7,6 +7,7 @@ public record GameOverviewQueryRequest(
     String searchText,                // LIKE %text%
     List<String> platformUids,
     List<String> consoleUids,
+    Boolean ignorePorts,              // when true, consoleUids match only platform console (null treated as false)
 
     Boolean inBacklog,
     Boolean hasActivePlaythrough,

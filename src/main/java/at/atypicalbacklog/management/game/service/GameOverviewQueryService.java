@@ -353,12 +353,16 @@ public class GameOverviewQueryService {
             sb.append(" AND p.uid IN (:platformUids)");
         }
         if (req.consoleUids() != null && !req.consoleUids().isEmpty()) {
-            sb.append("""
-                AND (
-                    gi.original_console_uid IN (:consoleUids)
-                    OR p.console_uid IN (:consoleUids)
-                )
-                """);
+            if (Boolean.TRUE.equals(req.ignorePorts())) {
+                sb.append(" AND p.console_uid IN (:consoleUids)");
+            } else {
+                sb.append("""
+                    AND (
+                        gi.original_console_uid IN (:consoleUids)
+                        OR p.console_uid IN (:consoleUids)
+                    )
+                    """);
+            }
         }
         if (req.inBacklog() != null) {
             sb.append(" AND EXISTS (SELECT 1 FROM backlog b WHERE b.game_uid = g.uid AND b.removed_date IS NULL) = :inBacklog");
@@ -439,12 +443,16 @@ public class GameOverviewQueryService {
             sb.append(" AND p.uid IN (:platformUids)");
         }
         if (req.consoleUids() != null && !req.consoleUids().isEmpty()) {
-            sb.append("""
-                AND (
-                    gi.original_console_uid IN (:consoleUids)
-                    OR p.console_uid IN (:consoleUids)
-                )
-                """);
+            if (Boolean.TRUE.equals(req.ignorePorts())) {
+                sb.append(" AND p.console_uid IN (:consoleUids)");
+            } else {
+                sb.append("""
+                    AND (
+                        gi.original_console_uid IN (:consoleUids)
+                        OR p.console_uid IN (:consoleUids)
+                    )
+                    """);
+            }
         }
         if (req.inBacklog() != null) {
             sb.append(" AND EXISTS (SELECT 1 FROM backlog b WHERE b.game_uid = g.uid AND b.removed_date IS NULL) = :inBacklog");
