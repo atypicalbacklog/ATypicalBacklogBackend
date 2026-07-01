@@ -26,6 +26,9 @@ public class Review {
     @Column(columnDefinition = "text")
     private String text;
 
+    @Column(name = "preferred_image_uid")
+    private String preferredImageUid;
+
     protected Review() {}
 
     public Review(
@@ -47,10 +50,11 @@ public class Review {
         this.tierUid = tierUid;
     }
 
-    public void updateDetails(LocalDate reviewDate, String tierUid, String text) {
+    public void updateDetails(LocalDate reviewDate, String tierUid, String text, String preferredImageUid) {
         if (reviewDate != null) this.reviewDate = reviewDate;
         if (tierUid != null) this.tierUid = tierUid;
         if (text != null) this.text = text;
+        if (preferredImageUid != null) this.preferredImageUid = preferredImageUid;
     }
 
     // getters only
@@ -60,5 +64,9 @@ public class Review {
 
     public String getTierUid() {
         return tierUid;
+    }
+
+    public String getPreferredImageUid() {
+        return preferredImageUid;
     }
 }

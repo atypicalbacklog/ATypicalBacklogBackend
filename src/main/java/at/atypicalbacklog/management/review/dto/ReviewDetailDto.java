@@ -8,9 +8,12 @@ public record ReviewDetailDto(
     LocalDate reviewDate,
     String tierUid,
     String text,
+    String preferredImageUid,
 
     LinkedPlaythroughDto linkedPlaythrough,
 
+    String gameInstanceUid,    // game instance of the linked playthrough
+    String gameUid,            // game of the linked playthrough's instance
     String displayName,
     String coverImageUid,
 

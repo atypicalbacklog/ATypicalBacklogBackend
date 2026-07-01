@@ -60,6 +60,21 @@ public class GameCompletion {
         if (completedDate != null) this.completedDate = completedDate;
     }
 
+    /** Partial update: only non-null values are applied. */
+    public void applyPartialUpdate(
+        String completionStateUid,
+        String dlcUid,
+        String info,
+        LocalDate finishedDate,
+        LocalDate completedDate
+    ) {
+        if (completionStateUid != null) this.completionStateUid = completionStateUid;
+        if (dlcUid != null) this.dlcUid = dlcUid;
+        if (info != null) this.info = info;
+        if (finishedDate != null) this.finishedDate = finishedDate;
+        if (completedDate != null) this.completedDate = completedDate;
+    }
+
     public String getUid() { return uid; }
     public String getGameInstanceUid() { return gameInstanceUid; }
     public String getCompletionStateUid() { return completionStateUid; }

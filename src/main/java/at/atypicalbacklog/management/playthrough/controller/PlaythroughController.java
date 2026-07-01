@@ -3,6 +3,7 @@ package at.atypicalbacklog.management.playthrough.controller;
 import org.springframework.web.bind.annotation.*;
 
 import at.atypicalbacklog.management.playthrough.dto.CreatePlaythroughRequest;
+import at.atypicalbacklog.management.playthrough.dto.PlaythroughCompletionRequest;
 import at.atypicalbacklog.management.playthrough.dto.PlaythroughResponse;
 import at.atypicalbacklog.management.playthrough.dto.UpdatePlaythroughRequest;
 import at.atypicalbacklog.management.playthrough.service.PlaythroughCommandService;
@@ -31,6 +32,14 @@ public class PlaythroughController {
         @RequestBody UpdatePlaythroughRequest req
     ) {
         return service.update(uid, req);
+    }
+
+    @PutMapping("/{uid}/playthrough-completion")
+    public PlaythroughResponse updateCompletion(
+        @PathVariable String uid,
+        @RequestBody PlaythroughCompletionRequest req
+    ) {
+        return service.updateCompletion(uid, req);
     }
 
     // READ (NEW)

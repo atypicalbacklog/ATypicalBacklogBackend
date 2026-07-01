@@ -34,10 +34,14 @@ public class ReviewDetailQueryService {
               r.review_date,
               r.tier_uid,
               r.text,
+              r.preferred_image_uid,
 
               pt.uid AS playthrough_uid,
               pt.playthrough_type_uid,
               pt.playthrough_state_uid,
+
+              gi.uid AS game_instance_uid,
+              g.uid AS game_uid,
 
               COALESCE(gi.name, g.name_base) AS display_name,
 
@@ -92,10 +96,14 @@ public class ReviewDetailQueryService {
               r.review_date,
               r.tier_uid,
               r.text,
+              r.preferred_image_uid,
 
               pt.uid AS playthrough_uid,
               pt.playthrough_type_uid,
               pt.playthrough_state_uid,
+
+              gi.uid AS game_instance_uid,
+              g.uid AS game_uid,
 
               COALESCE(gi.name, g.name_base) AS display_name,
 
@@ -143,6 +151,7 @@ public class ReviewDetailQueryService {
             rs.getObject("review_date", LocalDate.class),
             rs.getString("tier_uid"),
             rs.getString("text"),
+            rs.getString("preferred_image_uid"),
 
             new LinkedPlaythroughDto(
                 rs.getString("playthrough_uid"),
@@ -150,6 +159,8 @@ public class ReviewDetailQueryService {
                 rs.getString("playthrough_state_uid")
             ),
 
+            rs.getString("game_instance_uid"),
+            rs.getString("game_uid"),
             rs.getString("display_name"),
             rs.getString("cover_image_uid"),
 

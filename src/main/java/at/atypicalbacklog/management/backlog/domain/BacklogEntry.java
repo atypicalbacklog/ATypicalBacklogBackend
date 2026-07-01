@@ -55,6 +55,12 @@ public class BacklogEntry {
         this.reason = reason;
     }
 
+    /** Partial update: only non-null values are applied. */
+    public void applyCompletionUpdate(LocalDate removedDate, String reason) {
+        if (removedDate != null) this.removedDate = removedDate;
+        if (reason != null) this.reason = reason;
+    }
+
     // getters only
     public String getUid() {
         return uid;

@@ -7,6 +7,7 @@ import at.atypicalbacklog.management.review.repository.ReviewRepository;
 
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @Service
@@ -28,8 +29,14 @@ public class ReviewUpdateCommandService {
         Review r = repository.findById(req.reviewUid())
             .orElseThrow();
 
-        r.updateDetails(req.reviewDate(), req.tierUid(), req.text());
+        r.updateDetails(req.reviewDate(), req.tierUid(), req.text(), req.preferredImageUid());
         repository.save(r);
+
+        Map<String, Object> changedData = new HashMap<>();
+        changedData.put("reviewDate", req.reviewDate());
+        changedData.put("tierUid", req.tierUid());
+        changedData.put("textChanged", req.text() != null);
+        changedData.put("preferredImageUid", req.preferredImageUid());
 
         audit.record(
             "Update Review Details",
@@ -37,11 +44,7 @@ public class ReviewUpdateCommandService {
             "UPDATE",
             Map.of("reviewUid", r.getUid()),
             null,
-            Map.of(
-                "reviewDate", req.reviewDate(),
-                "tierUid", req.tierUid(),
-                "textChanged", req.text() != null
-            ),
+            changedData,
             null
         );
     }
