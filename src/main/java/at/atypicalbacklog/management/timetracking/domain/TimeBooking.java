@@ -35,6 +35,10 @@ public class TimeBooking {
         this.endTime = endTime;
     }
 
+    public void setEndTime(Instant endTime) {
+        this.endTime = endTime;
+    }
+
     public boolean isOpen() {
         return endTime == null;
     }

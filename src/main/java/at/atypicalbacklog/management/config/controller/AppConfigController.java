@@ -1,8 +1,8 @@
 package at.atypicalbacklog.management.config.controller;
 
+import at.atypicalbacklog.management.config.AppModeService;
 import at.atypicalbacklog.management.config.dto.AppConfigResponse;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -11,15 +11,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/app-config")
 public class AppConfigController {
 
-    private static final String DEFAULT_MODE = "PUBLIC";
+    private final AppModeService appModeService;
 
-    /** MANAGEMENT or PUBLIC; default PUBLIC if not set in application.yml. */
-    @Value("${app.mode:PUBLIC}")
-    private String mode;
+    public AppConfigController(AppModeService appModeService) {
+        this.appModeService = appModeService;
+    }
 
     @GetMapping
     public AppConfigResponse getAppConfig() {
-        String resolved = "MANAGEMENT".equalsIgnoreCase(mode) ? "MANAGEMENT" : DEFAULT_MODE;
-        return new AppConfigResponse(resolved);
+        return new AppConfigResponse(appModeService.getMode().name());
     }
 }

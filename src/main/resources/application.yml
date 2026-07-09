@@ -3,6 +3,7 @@
 app:
   # App mode exposed at GET /api/app-config. Allowed: MANAGEMENT, PUBLIC. Default if unset: PUBLIC.
   mode: MANAGEMENT
+
   timezone: Europe/Vienna
   image:
     # Root directory for stored game images (original + thumbnail). Relative to process CWD or absolute path.
@@ -12,6 +13,9 @@ app:
     # Twitch/IGDB API credentials. Prefer env vars IGDB_CLIENT_ID / IGDB_CLIENT_SECRET.
     client-id: CLIENT_ID
     client-secret: CLIENT_SECRET
+  public-feed:
+    # Recent activity feed (25.1): only include changes within this many days
+    recent-activity-days: 90
   google:
     calendar:
       # When false, scheduled sync does nothing (endpoint still works). Default: false.
@@ -59,14 +63,24 @@ logging:
     path: logs
   level:
     at.atypicalbacklog: INFO   # application packages (use DEBUG for more detail)
+    at.atypicalbacklog.security.access: WARN
     java: WARN                 # JDK (e.g. SQL, HTTP client)
     javax: WARN                # Jakarta / JEE
 
 management:
   endpoints:
     web:
+      # MANAGEMENT: health + info. PUBLIC: use profile public or set include: health only.
       exposure:
         include: health,info
 
 server:
   port: 8080
+  # Sensible defaults for a small public site (<10 users). Tighter limits in application-public.yml.
+  tomcat:
+    max-connections: 50
+    accept-count: 20
+    connection-timeout: 20s
+    threads:
+      max: 30
+  max-http-request-header-size: 8KB

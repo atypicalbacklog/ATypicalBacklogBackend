@@ -1,0 +1,33 @@
+# Optional profile for public deployment: activate with
+#   spring.profiles.active=public
+# together with app.mode: PUBLIC in application.yml (or APP_MODE=PUBLIC).
+#
+# Proxy rate-limit hits (HTTP 429) are logged at the reverse proxy; the app logs
+# any 429 responses via RateLimitResponseLoggingFilter (logger: at.atypicalbacklog.security.access).
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+server:
+  tomcat:
+    max-connections: 30
+    accept-count: 10
+    connection-timeout: 20s
+    threads:
+      max: 25
+  max-http-request-header-size: 8KB
+
+spring:
+  servlet:
+    multipart:
+      max-file-size: 2MB
+      max-request-size: 2MB

@@ -90,6 +90,7 @@ public class ReviewSearchQueryService {
               r.review_date,
               r.tier_uid,
               r.preferred_image_uid,
+              r.presentation_type,
               r.text AS review_text
 
             FROM playthrough pt
@@ -150,6 +151,7 @@ public class ReviewSearchQueryService {
                         r.reviewDate,
                         r.tierUid,
                         r.preferredImageUid,
+                        r.presentationType,
                         r.reviewText != null && !r.reviewText.isBlank(),
                         parseDlcs(r.linkedDlcsJson),
                         parseCompletions(r.completionsJson)
@@ -177,6 +179,7 @@ public class ReviewSearchQueryService {
             rs.getObject("review_date", LocalDate.class),
             rs.getString("tier_uid"),
             rs.getString("preferred_image_uid"),
+            rs.getString("presentation_type"),
             rs.getString("review_text")
         );
     }
@@ -246,6 +249,7 @@ public class ReviewSearchQueryService {
         LocalDate reviewDate,
         String tierUid,
         String preferredImageUid,
+        String presentationType,
         String reviewText
     ) {}
 }

@@ -62,7 +62,8 @@ public class YearlyReviewQueryService {
                             g.getGameInstanceUid(),
                             g.getPreferredImageUid(),
                             g.getText(),
-                            g.getOrder()
+                            g.getOrder(),
+                            g.getPresentationType()
                         ))
                         .toList()
                 ))

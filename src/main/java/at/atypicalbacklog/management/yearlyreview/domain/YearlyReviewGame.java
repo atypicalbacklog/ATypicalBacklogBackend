@@ -30,6 +30,9 @@ public class YearlyReviewGame {
     @Column(nullable = false)
     private boolean valid = true;
 
+    @Column(name = "presentation_type", nullable = false, length = 100)
+    private String presentationType;
+
     protected YearlyReviewGame() {}
 
     public YearlyReviewGame(
@@ -49,6 +52,7 @@ public class YearlyReviewGame {
         this.text = text;
         this.order = order;
         this.valid = true;
+        this.presentationType = "DEFAULT";
     }
 
     public String getUid() { return uid; }
@@ -59,6 +63,7 @@ public class YearlyReviewGame {
     public String getText() { return text; }
     public int getOrder() { return order; }
     public boolean isValid() { return valid; }
+    public String getPresentationType() { return presentationType; }
 
     public void setGameUid(String gameUid) { this.gameUid = gameUid; }
     public void setGameInstanceUid(String gameInstanceUid) { this.gameInstanceUid = gameInstanceUid; }
@@ -66,4 +71,5 @@ public class YearlyReviewGame {
     public void setText(String text) { this.text = text; }
     public void setOrder(int order) { this.order = order; }
     public void setValid(boolean valid) { this.valid = valid; }
+    public void setPresentationType(String presentationType) { this.presentationType = presentationType; }
 }

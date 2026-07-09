@@ -5,6 +5,8 @@ import at.atypicalbacklog.management.timetracking.domain.TimeBooking;
 import at.atypicalbacklog.management.timetracking.dto.CreateRetroactiveSessionRequest;
 import at.atypicalbacklog.management.timetracking.repository.TimeBookingRepository;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,8 @@ import java.util.UUID;
 
 @Service
 public class TimeTrackingService {
+
+    private static final Logger log = LoggerFactory.getLogger(TimeTrackingService.class);
 
     private final TimeBookingRepository repository;
     private final AuditRecorder auditRecorder;
@@ -147,6 +151,51 @@ public class TimeTrackingService {
             ),
             null
         );
+        return saved;
+    }
+
+    /**
+     * Shortens a closed time booking by moving endTime earlier by {@code durationMinutes}.
+     */
+    public TimeBooking reduceDuration(String uid, int durationMinutes) {
+        if (uid == null || uid.isBlank()) {
+            throw new IllegalArgumentException("uid is required");
+        }
+        if (durationMinutes <= 0) {
+            throw new IllegalArgumentException("durationMinutes must be positive");
+        }
+
+        TimeBooking booking = repository.findById(uid)
+            .orElseThrow(() -> new IllegalArgumentException("Time booking not found: " + uid));
+
+        if (booking.getStartTime() == null || booking.getEndTime() == null) {
+            throw new IllegalArgumentException("Time booking is not closed: " + uid);
+        }
+
+        Duration currentDuration = Duration.between(booking.getStartTime(), booking.getEndTime());
+        Duration reduction = Duration.ofMinutes(durationMinutes);
+
+        if (currentDuration.compareTo(reduction) <= 0) {
+            throw new IllegalArgumentException(
+                "Booking duration must be greater than reduction duration (booking: "
+                    + currentDuration.toMinutes() + " min, reduction: " + durationMinutes + " min)"
+            );
+        }
+
+        Instant previousEndTime = booking.getEndTime();
+        Instant newEndTime = previousEndTime.minus(reduction);
+        booking.setEndTime(newEndTime);
+        TimeBooking saved = repository.save(booking);
+
+        log.info(
+            "Reduced time booking {} end time by {} minutes (from {} to {}, playthrough {})",
+            uid,
+            durationMinutes,
+            previousEndTime,
+            newEndTime,
+            booking.getPlaythroughUid()
+        );
+
         return saved;
     }
 }

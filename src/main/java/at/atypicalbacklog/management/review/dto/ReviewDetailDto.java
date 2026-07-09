@@ -9,6 +9,7 @@ public record ReviewDetailDto(
     String tierUid,
     String text,
     String preferredImageUid,
+    String presentationType,   // e.g. DEFAULT, UPDATED, REPEAT, REPLACED
 
     LinkedPlaythroughDto linkedPlaythrough,
 

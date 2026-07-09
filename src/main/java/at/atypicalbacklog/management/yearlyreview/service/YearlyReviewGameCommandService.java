@@ -20,17 +20,19 @@ public class YearlyReviewGameCommandService {
     public void upsert(UpsertYearlyReviewGameRequest req) {
 
         if (req.uid() == null) {
-            gameRepo.save(
-                new YearlyReviewGame(
-                    UUID.randomUUID().toString(),
-                    req.categoryUid(),
-                    req.gameUid(),
-                    req.gameInstanceUid(),
-                    req.preferredImageUid(),
-                    req.text(),
-                    req.order()
-                )
+            YearlyReviewGame game = new YearlyReviewGame(
+                UUID.randomUUID().toString(),
+                req.categoryUid(),
+                req.gameUid(),
+                req.gameInstanceUid(),
+                req.preferredImageUid(),
+                req.text(),
+                req.order()
             );
+            if (req.presentationType() != null) {
+                game.setPresentationType(req.presentationType());
+            }
+            gameRepo.save(game);
             return;
         }
 
@@ -42,6 +44,9 @@ public class YearlyReviewGameCommandService {
         game.setPreferredImageUid(req.preferredImageUid());
         game.setText(req.text());
         game.setOrder(req.order());
+        if (req.presentationType() != null) {
+            game.setPresentationType(req.presentationType());
+        }
 
         gameRepo.save(game);
     }

@@ -20,6 +20,7 @@ public record PlaythroughWithReviewDto(
     LocalDate reviewDate,
     String tierUid,
     String preferredImageUid,    // review's preferred image; null when no review or not set
+    String presentationType,     // null when no review
 
     boolean hasTextReview,
 

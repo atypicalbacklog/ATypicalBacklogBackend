@@ -29,7 +29,7 @@ public class ReviewUpdateCommandService {
         Review r = repository.findById(req.reviewUid())
             .orElseThrow();
 
-        r.updateDetails(req.reviewDate(), req.tierUid(), req.text(), req.preferredImageUid());
+        r.updateDetails(req.reviewDate(), req.tierUid(), req.text(), req.preferredImageUid(), req.presentationType());
         repository.save(r);
 
         Map<String, Object> changedData = new HashMap<>();
@@ -37,6 +37,7 @@ public class ReviewUpdateCommandService {
         changedData.put("tierUid", req.tierUid());
         changedData.put("textChanged", req.text() != null);
         changedData.put("preferredImageUid", req.preferredImageUid());
+        changedData.put("presentationType", req.presentationType());
 
         audit.record(
             "Update Review Details",

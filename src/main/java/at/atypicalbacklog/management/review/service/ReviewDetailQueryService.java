@@ -35,6 +35,7 @@ public class ReviewDetailQueryService {
               r.tier_uid,
               r.text,
               r.preferred_image_uid,
+              r.presentation_type,
 
               pt.uid AS playthrough_uid,
               pt.playthrough_type_uid,
@@ -97,6 +98,7 @@ public class ReviewDetailQueryService {
               r.tier_uid,
               r.text,
               r.preferred_image_uid,
+              r.presentation_type,
 
               pt.uid AS playthrough_uid,
               pt.playthrough_type_uid,
@@ -152,6 +154,7 @@ public class ReviewDetailQueryService {
             rs.getString("tier_uid"),
             rs.getString("text"),
             rs.getString("preferred_image_uid"),
+            rs.getString("presentation_type"),
 
             new LinkedPlaythroughDto(
                 rs.getString("playthrough_uid"),

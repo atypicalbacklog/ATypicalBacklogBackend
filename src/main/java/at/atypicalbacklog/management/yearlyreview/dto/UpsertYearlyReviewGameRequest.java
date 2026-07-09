@@ -7,5 +7,6 @@ public record UpsertYearlyReviewGameRequest(
     String gameInstanceUid,
     String preferredImageUid,
     String text,
-    int order
+    int order,
+    String presentationType
 ) {}

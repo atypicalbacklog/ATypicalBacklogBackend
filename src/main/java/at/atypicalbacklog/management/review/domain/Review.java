@@ -29,6 +29,9 @@ public class Review {
     @Column(name = "preferred_image_uid")
     private String preferredImageUid;
 
+    @Column(name = "presentation_type", nullable = false, length = 100)
+    private String presentationType;
+
     protected Review() {}
 
     public Review(
@@ -44,17 +47,25 @@ public class Review {
         this.reviewDate = reviewDate;
         this.tierUid = tierUid;
         this.text = text;
+        this.presentationType = "DEFAULT";
     }
 
     public void updateTier(String tierUid) {
         this.tierUid = tierUid;
     }
 
-    public void updateDetails(LocalDate reviewDate, String tierUid, String text, String preferredImageUid) {
+    public void updateDetails(
+        LocalDate reviewDate,
+        String tierUid,
+        String text,
+        String preferredImageUid,
+        String presentationType
+    ) {
         if (reviewDate != null) this.reviewDate = reviewDate;
         if (tierUid != null) this.tierUid = tierUid;
         if (text != null) this.text = text;
         if (preferredImageUid != null) this.preferredImageUid = preferredImageUid;
+        if (presentationType != null) this.presentationType = presentationType;
     }
 
     // getters only
@@ -68,5 +79,9 @@ public class Review {
 
     public String getPreferredImageUid() {
         return preferredImageUid;
+    }
+
+    public String getPresentationType() {
+        return presentationType;
     }
 }

@@ -7,5 +7,6 @@ public record UpdateReviewRequest(
     LocalDate reviewDate,
     String tierUid,
     String text,
-    String preferredImageUid
+    String preferredImageUid,
+    String presentationType
 ) {}
