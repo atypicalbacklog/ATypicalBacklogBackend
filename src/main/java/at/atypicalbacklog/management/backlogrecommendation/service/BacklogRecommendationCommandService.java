@@ -14,6 +14,8 @@ import at.atypicalbacklog.management.backlogrecommendation.repository.BacklogRec
 import at.atypicalbacklog.management.backlogrecommendation.repository.BacklogRecommendationRepository;
 import at.atypicalbacklog.management.backlogrecommendation.repository.GameRecommendationRepository;
 import at.atypicalbacklog.management.game.repository.GameRepository;
+import at.atypicalbacklog.management.moderation.CommentModerationResult;
+import at.atypicalbacklog.management.moderation.CommentModerationService;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,19 +31,22 @@ public class BacklogRecommendationCommandService {
     private final BacklogRecommendationCommentRepository commentRepo;
     private final GameRepository gameRepo;
     private final AuditRecorder audit;
+    private final CommentModerationService moderationService;
 
     public BacklogRecommendationCommandService(
         GameRecommendationRepository gameRecommendationRepo,
         BacklogRecommendationRepository backlogRecommendationRepo,
         BacklogRecommendationCommentRepository commentRepo,
         GameRepository gameRepo,
-        AuditRecorder audit
+        AuditRecorder audit,
+        CommentModerationService moderationService
     ) {
         this.gameRecommendationRepo = gameRecommendationRepo;
         this.backlogRecommendationRepo = backlogRecommendationRepo;
         this.commentRepo = commentRepo;
         this.gameRepo = gameRepo;
         this.audit = audit;
+        this.moderationService = moderationService;
     }
 
     @Transactional
@@ -61,12 +66,19 @@ public class BacklogRecommendationCommandService {
 
         PublicInputValidation.requireRecommendationName(backlogInput.name());
 
+        String ownerComment = null;
+        if (backlogInput.comment() != null && !backlogInput.comment().isBlank()) {
+            PublicInputValidation.requireComment(backlogInput.comment());
+            ownerComment = backlogInput.comment();
+        }
+
         BacklogRecommendation recommendation = new BacklogRecommendation(
             UUID.randomUUID().toString(),
             gameRecommendationUid,
             backlogInput.gameUid(),
             backlogInput.name(),
-            backlogInput.originalRecommendationBy()
+            backlogInput.originalRecommendationBy(),
+            ownerComment
         );
 
         backlogRecommendationRepo.save(recommendation);
@@ -80,26 +92,6 @@ public class BacklogRecommendationCommandService {
             recommendation,
             null
         );
-
-        if (backlogInput.comment() != null && !backlogInput.comment().isBlank()) {
-            PublicInputValidation.requireComment(backlogInput.comment());
-            BacklogRecommendationComment comment = new BacklogRecommendationComment(
-                UUID.randomUUID().toString(),
-                recommendation.getUid(),
-                backlogInput.comment()
-            );
-            commentRepo.save(comment);
-
-            audit.record(
-                "Add Backlog Recommendation Comment",
-                "BacklogRecommendationComment",
-                "CREATE",
-                Map.of("backlogRecommendationUid", recommendation.getUid()),
-                null,
-                comment,
-                null
-            );
-        }
 
         return new CreateBacklogRecommendationResponse(
             recommendation.getUid(),
@@ -138,11 +130,16 @@ public class BacklogRecommendationCommandService {
             throw new IllegalArgumentException("BacklogRecommendation not found");
         }
 
+        CommentModerationResult moderation = moderationService.moderate(req.comment());
+
         BacklogRecommendationComment comment = new BacklogRecommendationComment(
             UUID.randomUUID().toString(),
             backlogRecommendationUid,
             req.comment()
         );
+        if (moderation.checked()) {
+            comment.applyModeration(moderation.flagged(), moderation.reason(), moderation.score());
+        }
 
         commentRepo.save(comment);
 
@@ -172,7 +169,8 @@ public class BacklogRecommendationCommandService {
             UUID.randomUUID().toString(),
             input.nameBase(),
             input.releaseDate(),
-            input.externalIgdbId()
+            input.externalIgdbId(),
+            input.externalIgdbIdImageURL()
         );
         gameRecommendationRepo.save(created);
         return created.getUid();

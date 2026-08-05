@@ -23,6 +23,10 @@ public class BacklogRecommendation {
     @Column(nullable = false)
     private String name;
 
+    /** Original submitter comment (create-time). Not moderation-checked; sanitized on read while NEW. */
+    @Column(columnDefinition = "text")
+    private String comment;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 100)
     private BacklogRecommendationState state;
@@ -46,13 +50,15 @@ public class BacklogRecommendation {
         String gameRecommendationUid,
         String gameUid,
         String name,
-        String originalRecommendationBy
+        String originalRecommendationBy,
+        String comment
     ) {
         this.uid = uid;
         this.creationDate = Instant.now();
         this.gameRecommendationUid = gameRecommendationUid;
         this.gameUid = gameUid;
         this.name = name;
+        this.comment = comment;
         this.state = BacklogRecommendationState.NEW;
         this.stateReason = null;
         this.stateDate = LocalDate.now();
@@ -69,6 +75,7 @@ public class BacklogRecommendation {
     public String getGameRecommendationUid() { return gameRecommendationUid; }
     public String getGameUid() { return gameUid; }
     public String getName() { return name; }
+    public String getComment() { return comment; }
     public BacklogRecommendationState getState() { return state; }
     public String getStateReason() { return stateReason; }
     public LocalDate getStateDate() { return stateDate; }

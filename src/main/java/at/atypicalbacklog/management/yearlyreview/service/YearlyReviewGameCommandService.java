@@ -26,6 +26,7 @@ public class YearlyReviewGameCommandService {
                 req.gameUid(),
                 req.gameInstanceUid(),
                 req.preferredImageUid(),
+                req.additionalImageUid(),
                 req.text(),
                 req.order()
             );
@@ -42,6 +43,7 @@ public class YearlyReviewGameCommandService {
         game.setGameUid(req.gameUid());
         game.setGameInstanceUid(req.gameInstanceUid());
         game.setPreferredImageUid(req.preferredImageUid());
+        game.setAdditionalImageUid(req.additionalImageUid());
         game.setText(req.text());
         game.setOrder(req.order());
         if (req.presentationType() != null) {

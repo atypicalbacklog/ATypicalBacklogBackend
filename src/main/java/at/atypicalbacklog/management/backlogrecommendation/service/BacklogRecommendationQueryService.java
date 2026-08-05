@@ -8,6 +8,7 @@ import at.atypicalbacklog.management.backlogrecommendation.dto.GameRecommendatio
 import at.atypicalbacklog.management.backlogrecommendation.dto.UnifiedGameSearchCompletionDto;
 import at.atypicalbacklog.management.backlogrecommendation.dto.UnifiedGameSearchResultDto;
 import at.atypicalbacklog.management.completion.dto.GameCompletionInfoDto;
+import at.atypicalbacklog.management.moderation.FlaggedCommentSanitizer;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -40,25 +41,6 @@ public class BacklogRecommendationQueryService {
             AND img.type = 'COVER'
           ORDER BY img.primary_image DESC NULLS LAST, img.creation_date DESC
           LIMIT 1
-        )
-        """;
-
-    private static final String COMPLETIONS_JSON_SUBQUERY = """
-        (
-          SELECT COALESCE(json_agg(
-            json_build_object(
-              'uid', gc.uid,
-              'gameInstanceUid', gc.game_instance_uid,
-              'dlcUid', gc.dlc_uid,
-              'completionStateUid', gc.completion_state_uid,
-              'info', gc.info,
-              'finishedDate', gc.finished_date,
-              'completedDate', gc.completed_date
-            ) ORDER BY gc.creation_date
-          ), '[]'::json)
-          FROM game_completion gc
-          JOIN game_instance gi ON gi.uid = gc.game_instance_uid
-          WHERE gi.game_uid = g.uid
         )
         """;
 
@@ -129,7 +111,9 @@ public class BacklogRecommendationQueryService {
             json_build_object(
               'uid', c.uid,
               'creationDate', c.creation_date,
-              'comment', c.comment
+              'comment', c.comment,
+              'moderationFlagged', c.moderation_flagged,
+              'moderationReason', c.moderation_reason
             ) ORDER BY c.creation_date ASC
           ), '[]'::json)
           FROM backlog_recommendation_comment c
@@ -220,12 +204,17 @@ public class BacklogRecommendationQueryService {
         br.state_date,
         br.votecount,
         br.original_recommendation_by,
+        br.comment,
         br.game_uid,
+        (br.game_uid IS NOT NULL AND EXISTS (
+          SELECT 1 FROM game g WHERE g.uid = br.game_uid
+        )) AS has_linked_game,
         gr.uid AS gr_uid,
         gr.creation_date AS gr_creation_date,
         gr.name_base AS gr_name_base,
         gr.release_date AS gr_release_date,
         gr.external_igdb_id AS gr_external_igdb_id,
+        gr.external_igdb_id_image_url AS gr_external_igdb_id_image_url,
         """
         + COMMENTS_JSON_SUBQUERY + " AS comments_json,\n"
         + BACKLOG_WHEN_LINKED_JSON + " AS backlog_json,\n"
@@ -233,9 +222,17 @@ public class BacklogRecommendationQueryService {
         + LINKED_GAME_IMAGE_SUBQUERY + " AS linked_game_image_uid,\n";
 
     private final NamedParameterJdbcTemplate jdbc;
+    private final BacklogRecommendationNameSanitizer nameSanitizer;
+    private final FlaggedCommentSanitizer flaggedCommentSanitizer;
 
-    public BacklogRecommendationQueryService(NamedParameterJdbcTemplate jdbc) {
+    public BacklogRecommendationQueryService(
+        NamedParameterJdbcTemplate jdbc,
+        BacklogRecommendationNameSanitizer nameSanitizer,
+        FlaggedCommentSanitizer flaggedCommentSanitizer
+    ) {
         this.jdbc = jdbc;
+        this.nameSanitizer = nameSanitizer;
+        this.flaggedCommentSanitizer = flaggedCommentSanitizer;
     }
 
     public BacklogRecommendationViewDto getByUid(String uid) {
@@ -317,11 +314,13 @@ public class BacklogRecommendationQueryService {
               br.votecount,
               br.original_recommendation_by,
               br.game_uid,
+              (br.game_uid IS NOT NULL AND g.uid IS NOT NULL) AS has_linked_game,
               gr.uid AS gr_uid,
               gr.creation_date AS gr_creation_date,
               gr.name_base AS gr_name_base,
               gr.release_date AS gr_release_date,
               gr.external_igdb_id AS gr_external_igdb_id,
+              gr.external_igdb_id_image_url AS gr_external_igdb_id_image_url,
               COALESCE(g.first_release_date, gr.release_date) AS release_date,
             """
             + COVER_IMAGE_SUBQUERY + " AS cover_image_uid,\n"
@@ -337,22 +336,28 @@ public class BacklogRecommendationQueryService {
             LIMIT 20
             """;
 
-        return jdbc.query(sql, params, (rs, rowNum) -> new UnifiedGameSearchResultDto(
-            "BACKLOG_RECOMMENDATION",
-            rs.getString("name"),
-            rs.getObject("release_date", LocalDate.class),
-            rs.getString("cover_image_uid"),
-            rs.getString("game_uid"),
-            parseBacklogInfo(rs.getString("backlog_json")),
-            parseUnifiedCompletions(rs.getString("completions_json")),
-            rs.getString("backlog_recommendation_uid"),
-            rs.getInt("votecount"),
-            parseState(rs.getString("state")),
-            rs.getString("state_reason"),
-            rs.getObject("state_date", LocalDate.class),
-            rs.getString("original_recommendation_by"),
-            mapGameRecommendation(rs, "gr_")
-        ));
+        return jdbc.query(sql, params, (rs, rowNum) -> {
+            String gameUid = rs.getString("game_uid");
+            BacklogRecommendationState state = parseState(rs.getString("state"));
+            boolean sanitize = nameSanitizer.shouldSanitize(state, gameUid, rs.getBoolean("has_linked_game"));
+
+            return new UnifiedGameSearchResultDto(
+                "BACKLOG_RECOMMENDATION",
+                nameSanitizer.sanitizeName(rs.getString("name"), sanitize),
+                rs.getObject("release_date", LocalDate.class),
+                rs.getString("cover_image_uid"),
+                gameUid,
+                parseBacklogInfo(rs.getString("backlog_json")),
+                parseUnifiedCompletions(rs.getString("completions_json")),
+                rs.getString("backlog_recommendation_uid"),
+                rs.getInt("votecount"),
+                state,
+                rs.getString("state_reason"),
+                rs.getObject("state_date", LocalDate.class),
+                rs.getString("original_recommendation_by"),
+                nameSanitizer.sanitizeGameRecommendation(mapGameRecommendation(rs, "gr_"), sanitize)
+            );
+        });
     }
 
     private List<UnifiedGameSearchResultDto> searchActiveBacklog(Map<String, Object> params) {
@@ -435,19 +440,24 @@ public class BacklogRecommendationQueryService {
     }
 
     private BacklogRecommendationViewDto mapViewRow(ResultSet rs) throws java.sql.SQLException {
+        String gameUid = rs.getString("game_uid");
+        BacklogRecommendationState state = parseState(rs.getString("state"));
+        boolean sanitize = nameSanitizer.shouldSanitize(state, gameUid, rs.getBoolean("has_linked_game"));
+
         return new BacklogRecommendationViewDto(
             rs.getString("uid"),
             toInstant(rs.getTimestamp("creation_date")),
-            rs.getString("name"),
-            parseState(rs.getString("state")),
+            nameSanitizer.sanitizeName(rs.getString("name"), sanitize),
+            state,
             rs.getString("state_reason"),
             rs.getObject("state_date", LocalDate.class),
             rs.getInt("votecount"),
             rs.getObject("vote_rank") == null ? null : rs.getInt("vote_rank"),
             rs.getString("original_recommendation_by"),
-            rs.getString("game_uid"),
+            nameSanitizer.sanitizeOwnerComment(state, rs.getString("comment")),
+            gameUid,
             rs.getString("linked_game_image_uid"),
-            mapGameRecommendation(rs, "gr_"),
+            nameSanitizer.sanitizeGameRecommendation(mapGameRecommendation(rs, "gr_"), sanitize),
             parseBacklogInfo(rs.getString("backlog_json")),
             parseCompletions(rs.getString("completions_json")),
             parseComments(rs.getString("comments_json"))
@@ -462,10 +472,18 @@ public class BacklogRecommendationQueryService {
             JsonNode arr = MAPPER.readTree(json);
             List<BacklogRecommendationCommentDto> list = new ArrayList<>();
             for (JsonNode n : arr) {
+                boolean flagged = n.has("moderationFlagged") && n.get("moderationFlagged").asBoolean(false);
+                String moderationReason = text(n, "moderationReason");
+                String commentText = flaggedCommentSanitizer.sanitizeCommentText(
+                    flagged,
+                    moderationReason,
+                    text(n, "comment")
+                );
                 list.add(new BacklogRecommendationCommentDto(
                     text(n, "uid"),
                     instant(n, "creationDate"),
-                    text(n, "comment")
+                    commentText,
+                    flagged
                 ));
             }
             return list;
@@ -518,7 +536,8 @@ public class BacklogRecommendationQueryService {
             toInstant(rs.getTimestamp(prefix + "creation_date")),
             rs.getString(prefix + "name_base"),
             rs.getObject(prefix + "release_date", LocalDate.class),
-            rs.getString(prefix + "external_igdb_id")
+            rs.getString(prefix + "external_igdb_id"),
+            rs.getString(prefix + "external_igdb_id_image_url")
         );
     }
 

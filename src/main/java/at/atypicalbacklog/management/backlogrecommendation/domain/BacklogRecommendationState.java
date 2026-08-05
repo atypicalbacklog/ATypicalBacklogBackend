@@ -2,6 +2,7 @@ package at.atypicalbacklog.management.backlogrecommendation.domain;
 
 public enum BacklogRecommendationState {
     NEW,
+    REVIEWED,
     CONFIRMED_FOR_BACKLOG,
     FINISHED,
     REJECTED,

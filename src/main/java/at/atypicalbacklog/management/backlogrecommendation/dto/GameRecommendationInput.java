@@ -6,5 +6,6 @@ public record GameRecommendationInput(
     String uid,
     String nameBase,
     LocalDate releaseDate,
-    String externalIgdbId
+    String externalIgdbId,
+    String externalIgdbIdImageURL
 ) {}

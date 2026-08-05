@@ -2,6 +2,7 @@ package at.atypicalbacklog.management.publicfeed.service;
 
 import at.atypicalbacklog.management.backlogrecommendation.domain.BacklogRecommendationState;
 import at.atypicalbacklog.management.backlogrecommendation.dto.GameRecommendationDto;
+import at.atypicalbacklog.management.backlogrecommendation.service.BacklogRecommendationNameSanitizer;
 import at.atypicalbacklog.management.config.validation.PublicInputValidation;
 import at.atypicalbacklog.management.game.dto.GameOverviewRowDto;
 import at.atypicalbacklog.management.publicfeed.dto.PublicRandomBacklogRecommendationFeedItemDto;
@@ -23,13 +24,16 @@ public class PublicRandomBacklogRecommendationFeedQueryService {
 
     private final NamedParameterJdbcTemplate jdbc;
     private final PublicGameOverviewLoader overviewLoader;
+    private final BacklogRecommendationNameSanitizer nameSanitizer;
 
     public PublicRandomBacklogRecommendationFeedQueryService(
         NamedParameterJdbcTemplate jdbc,
-        PublicGameOverviewLoader overviewLoader
+        PublicGameOverviewLoader overviewLoader,
+        BacklogRecommendationNameSanitizer nameSanitizer
     ) {
         this.jdbc = jdbc;
         this.overviewLoader = overviewLoader;
+        this.nameSanitizer = nameSanitizer;
     }
 
     public List<PublicRandomBacklogRecommendationFeedItemDto> query(int count) {
@@ -45,11 +49,15 @@ public class PublicRandomBacklogRecommendationFeedQueryService {
                 br.state_date,
                 br.votecount,
                 br.game_uid,
+                (br.game_uid IS NOT NULL AND EXISTS (
+                  SELECT 1 FROM game g WHERE g.uid = br.game_uid
+                )) AS has_linked_game,
                 gr.uid AS gr_uid,
                 gr.creation_date AS gr_creation_date,
                 gr.name_base AS gr_name_base,
                 gr.release_date AS gr_release_date,
                 gr.external_igdb_id AS gr_external_igdb_id,
+                gr.external_igdb_id_image_url AS gr_external_igdb_id_image_url,
                 RANK() OVER (ORDER BY br.votecount DESC, br.creation_date ASC) AS vote_rank,
                 (
                   SELECT gi.uid
@@ -89,9 +97,22 @@ public class PublicRandomBacklogRecommendationFeedQueryService {
                 }
             }
 
+            boolean sanitize = nameSanitizer.shouldSanitize(row.state(), row.gameUid(), row.hasLinkedGame());
+            GameRecommendationDto gameRecommendation = nameSanitizer.sanitizeGameRecommendation(
+                new GameRecommendationDto(
+                    row.grUid(),
+                    row.grCreationDate(),
+                    row.grNameBase(),
+                    row.grReleaseDate(),
+                    row.grExternalIgdbId(),
+                    row.grExternalIgdbIdImageURL()
+                ),
+                sanitize
+            );
+
             result.add(new PublicRandomBacklogRecommendationFeedItemDto(
                 row.uid(),
-                row.name(),
+                nameSanitizer.sanitizeName(row.name(), sanitize),
                 row.state(),
                 row.stateReason(),
                 row.stateDate(),
@@ -101,13 +122,7 @@ public class PublicRandomBacklogRecommendationFeedQueryService {
                 row.gameInstanceUid(),
                 imageUid,
                 overview,
-                new GameRecommendationDto(
-                    row.grUid(),
-                    row.grCreationDate(),
-                    row.grNameBase(),
-                    row.grReleaseDate(),
-                    row.grExternalIgdbId()
-                )
+                gameRecommendation
             ));
         }
         return result;
@@ -123,12 +138,14 @@ public class PublicRandomBacklogRecommendationFeedQueryService {
             rs.getInt("votecount"),
             rs.getInt("vote_rank"),
             rs.getString("game_uid"),
+            rs.getBoolean("has_linked_game"),
             rs.getString("game_instance_uid"),
             rs.getString("gr_uid"),
             toInstant(rs.getTimestamp("gr_creation_date")),
             rs.getString("gr_name_base"),
             rs.getObject("gr_release_date", LocalDate.class),
-            rs.getString("gr_external_igdb_id")
+            rs.getString("gr_external_igdb_id"),
+            rs.getString("gr_external_igdb_id_image_url")
         );
     }
 
@@ -149,11 +166,13 @@ public class PublicRandomBacklogRecommendationFeedQueryService {
         int voteCount,
         int voteRank,
         String gameUid,
+        boolean hasLinkedGame,
         String gameInstanceUid,
         String grUid,
         Instant grCreationDate,
         String grNameBase,
         LocalDate grReleaseDate,
-        String grExternalIgdbId
+        String grExternalIgdbId,
+        String grExternalIgdbIdImageURL
     ) {}
 }

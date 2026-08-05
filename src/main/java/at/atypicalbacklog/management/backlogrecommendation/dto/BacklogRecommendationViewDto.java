@@ -18,6 +18,8 @@ public record BacklogRecommendationViewDto(
     int voteCount,
     Integer voteRank,
     String originalRecommendationBy,
+    /** Owner/submitter comment from create; null when sanitized for NEW. */
+    String comment,
     String gameUid,
     String linkedGameImageUid,
     GameRecommendationDto gameRecommendation,

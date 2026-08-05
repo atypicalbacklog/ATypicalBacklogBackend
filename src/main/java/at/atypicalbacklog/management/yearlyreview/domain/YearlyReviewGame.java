@@ -21,6 +21,9 @@ public class YearlyReviewGame {
     @Column
     private String preferredImageUid;
 
+    @Column(name = "additional_image_uid")
+    private String additionalImageUid;
+
     @Column(columnDefinition = "text")
     private String text;
 
@@ -41,6 +44,7 @@ public class YearlyReviewGame {
         String gameUid,
         String gameInstanceUid,
         String preferredImageUid,
+        String additionalImageUid,
         String text,
         int order
     ) {
@@ -49,6 +53,7 @@ public class YearlyReviewGame {
         this.gameUid = gameUid;
         this.gameInstanceUid = gameInstanceUid;
         this.preferredImageUid = preferredImageUid;
+        this.additionalImageUid = additionalImageUid;
         this.text = text;
         this.order = order;
         this.valid = true;
@@ -60,6 +65,7 @@ public class YearlyReviewGame {
     public String getGameUid() { return gameUid; }
     public String getGameInstanceUid() { return gameInstanceUid; }
     public String getPreferredImageUid() { return preferredImageUid; }
+    public String getAdditionalImageUid() { return additionalImageUid; }
     public String getText() { return text; }
     public int getOrder() { return order; }
     public boolean isValid() { return valid; }
@@ -68,6 +74,7 @@ public class YearlyReviewGame {
     public void setGameUid(String gameUid) { this.gameUid = gameUid; }
     public void setGameInstanceUid(String gameInstanceUid) { this.gameInstanceUid = gameInstanceUid; }
     public void setPreferredImageUid(String preferredImageUid) { this.preferredImageUid = preferredImageUid; }
+    public void setAdditionalImageUid(String additionalImageUid) { this.additionalImageUid = additionalImageUid; }
     public void setText(String text) { this.text = text; }
     public void setOrder(int order) { this.order = order; }
     public void setValid(boolean valid) { this.valid = valid; }

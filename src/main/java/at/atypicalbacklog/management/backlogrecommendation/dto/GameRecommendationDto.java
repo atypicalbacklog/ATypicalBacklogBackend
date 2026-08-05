@@ -8,5 +8,6 @@ public record GameRecommendationDto(
     Instant creationDate,
     String nameBase,
     LocalDate releaseDate,
-    String externalIgdbId
+    String externalIgdbId,
+    String externalIgdbIdImageURL
 ) {}

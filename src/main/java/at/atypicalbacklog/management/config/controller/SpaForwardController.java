@@ -25,9 +25,12 @@ public class SpaForwardController {
         "/reviews/edit",
         "/statistics",
         "/backlog-completion-overview",
+        "/backlog-submissions",
         "/admin/import/staging",
         "/admin/import/staged-games/{uid}",
-        "/admin/import/staged-playthrough-groups/{uid}"
+        "/admin/import/staged-playthrough-groups/{uid}",
+        "/imprint",
+        "/faq-glossary"
     })
     public String forwardSpaRoutes() {
         return "forward:/";
