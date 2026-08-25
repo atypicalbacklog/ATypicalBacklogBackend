@@ -3,7 +3,8 @@
 app:
   # App mode exposed at GET /api/app-config. Allowed: MANAGEMENT, PUBLIC. Default if unset: PUBLIC.
   mode: MANAGEMENT
-
+  #mode: PUBLIC
+  # For public deployment also consider: spring.profiles.active=public (see application-public.yml)
   timezone: Europe/Vienna
   image:
     # Root directory for stored game images (original + thumbnail). Relative to process CWD or absolute path.
@@ -13,6 +14,30 @@ app:
     # Twitch/IGDB API credentials. Prefer env vars IGDB_CLIENT_ID / IGDB_CLIENT_SECRET.
     client-id: CLIENT_ID
     client-secret: CLIENT_SECRET
+  backlog-recommendation:
+    # Display name used when a NEW recommendation has no linked game (DTO sanitization).
+    awaiting-review-name: Game awaiting Review
+  moderation:
+    enabled: true
+    flagged-comment-message-prefix: "Comment has been flagged for: "
+    profanity:
+      enabled: true
+      # Directory of *.txt language lists. Default uses bundled resources.
+      wordlist-dir: classpath:profanity
+    toxicity:
+      enabled: false
+      threshold: 0.75
+    # Local ONNX model dir (model.onnx or model.quant.onnx + tokenizer.json).
+    model:
+      path: models/toxic-bert
+  discord:
+    digest:
+      # Daily admin digest via Discord incoming webhook (new recommendations / comments).
+      enabled: false
+      webhook-url: ${DISCORD_WEBHOOK_URL:}
+      # Europe/Vienna via app.timezone — 08:00 daily
+      cron: "0 0 8 * * *"
+      detail-limit: 10
   public-feed:
     # Recent activity feed (25.1): only include changes within this many days
     recent-activity-days: 90
@@ -54,6 +79,15 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
+  # SPA: index.html / unhashed static → revalidate every time (avoids sticky old CSS/JS after deploy).
+  # Hashed /assets/** get long-lived Cache-Control from SpaStaticResourceConfig.
+  web:
+    resources:
+      cache:
+        cachecontrol:
+          no-cache: true
+
   resources:
     add-mappings: true
 
