@@ -1,22 +1,33 @@
 package at.atypicalbacklog.management.image.processing;
 
 import javax.imageio.ImageIO;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 
 public class DefaultThumbnailGenerator implements ThumbnailGenerator {
 
     private static final int MAX_EDGE = 320;
     private static final String OUTPUT_FORMAT = "jpg";
 
+    static {
+        ImageIO.scanForPlugins();
+    }
+
     @Override
     public InputStream generateThumbnail(InputStream original) {
 
         try {
-            BufferedImage source = ImageIO.read(original);
+            byte[] data = original.readAllBytes();
+            BufferedImage source = ImageIO.read(new ByteArrayInputStream(data));
             if (source == null) {
-                throw new IllegalArgumentException("Unsupported or invalid image");
+                throw new IllegalArgumentException("Unsupported or invalid image format");
             }
 
             Dimension target = calculateTargetSize(
@@ -32,6 +43,8 @@ public class DefaultThumbnailGenerator implements ThumbnailGenerator {
 
             Graphics2D g = thumb.createGraphics();
             try {
+                g.setColor(Color.WHITE);
+                g.fillRect(0, 0, target.width, target.height);
                 g.setRenderingHint(
                     RenderingHints.KEY_INTERPOLATION,
                     RenderingHints.VALUE_INTERPOLATION_BICUBIC

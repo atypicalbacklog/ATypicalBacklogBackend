@@ -5,6 +5,7 @@ import at.atypicalbacklog.management.game.domain.Game;
 import at.atypicalbacklog.management.game.repository.GameInstanceRepository;
 import at.atypicalbacklog.management.game.repository.GameRepository;
 import at.atypicalbacklog.management.image.FilenameUtils;
+import at.atypicalbacklog.management.image.ImageFormatUtils;
 import at.atypicalbacklog.management.image.domain.GameImage;
 import at.atypicalbacklog.management.image.domain.ImageAspectHint;
 import at.atypicalbacklog.management.image.domain.ImageOwnerType;
@@ -108,7 +109,6 @@ public class IgdbImportService {
             byte[] imageData;
             try (InputStream urlStream = URI.create(fullUrl).toURL().openStream()) {
                 imageData = urlStream.readAllBytes();
-                log.info("Successfully downloaded image: {} bytes", imageData.length);
             } catch (IOException e) {
                 log.error("Failed to download image from URL: {}", fullUrl, e);
                 throw new IllegalStateException("Failed to download cover image from IGDB", e);
@@ -119,17 +119,20 @@ public class IgdbImportService {
                 throw new IllegalStateException("Downloaded image data is empty");
             }
 
+            String mimetype = ImageFormatUtils.detectMimetype(imageData, null);
+            log.info("Successfully downloaded image: {} bytes, detected mimetype={}", imageData.length, mimetype);
+
             String uid = UUID.randomUUID().toString();
             log.debug("Generated image UID: {}", uid);
 
             String displayName = resolveDisplayNameForSave(ownerType, gameUid, gameInstanceUid, dlcUid);
             String sanitizedName = FilenameUtils.sanitizeGameName(displayName);
-            String filename = FilenameUtils.buildImageFilename(displayName, "image/jpeg");
+            String filename = FilenameUtils.buildImageFilename(displayName, mimetype);
 
             GameImage image = new GameImage(
                 uid,
                 filename,
-                "image/jpeg",
+                mimetype,
                 ownerType,
                 gameUid,
                 gameInstanceUid,
@@ -144,7 +147,7 @@ public class IgdbImportService {
             // Create separate InputStreams from the byte array for both operations
             try (InputStream originalStream = new ByteArrayInputStream(imageData)) {
                 log.debug("Storing original image: uid={}, size={} bytes", uid, imageData.length);
-                storage.storeOriginal(uid, originalStream, "image/jpeg", sanitizedName);
+                storage.storeOriginal(uid, originalStream, mimetype, sanitizedName);
                 log.info("Successfully stored original image: uid={}", uid);
             }
 

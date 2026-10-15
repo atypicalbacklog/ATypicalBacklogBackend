@@ -1,6 +1,7 @@
 package at.atypicalbacklog.management.image.service;
 
 import at.atypicalbacklog.management.image.FilenameUtils;
+import at.atypicalbacklog.management.image.ImageFormatUtils;
 import at.atypicalbacklog.management.image.domain.AdditionalImage;
 import at.atypicalbacklog.management.image.domain.ImageAspectHint;
 import at.atypicalbacklog.management.image.domain.ImageSource;
@@ -51,21 +52,22 @@ public class AdditionalImageCommandService {
         }
 
         String uid = UUID.randomUUID().toString();
-        String mimetype = file.getContentType() != null ? file.getContentType() : "image/jpeg";
-        String filename = FilenameUtils.buildImageFilename(STORAGE_NAME, mimetype);
         String sanitizedName = FilenameUtils.sanitizeGameName(STORAGE_NAME);
-
-        AdditionalImage image = new AdditionalImage(
-            uid,
-            filename,
-            mimetype,
-            type,
-            source,
-            aspectHint
-        );
 
         try {
             byte[] imageData = file.getInputStream().readAllBytes();
+            String mimetype = ImageFormatUtils.detectMimetype(imageData, file.getContentType());
+            String filename = FilenameUtils.buildImageFilename(STORAGE_NAME, mimetype);
+
+            AdditionalImage image = new AdditionalImage(
+                uid,
+                filename,
+                mimetype,
+                type,
+                source,
+                aspectHint
+            );
+
             try (var originalStream = new ByteArrayInputStream(imageData)) {
                 storage.storeOriginal(uid, originalStream, mimetype, sanitizedName);
             }
@@ -73,12 +75,12 @@ public class AdditionalImageCommandService {
                  var thumbnailStream = thumbnails.generateThumbnail(thumbInput)) {
                 storage.storeThumbnail(uid, thumbnailStream, sanitizedName, "image/jpeg");
             }
+
+            repository.save(image);
+            return uid;
         } catch (Exception e) {
             throw new IllegalStateException("Image processing failed", e);
         }
-
-        repository.save(image);
-        return uid;
     }
 
     @Transactional

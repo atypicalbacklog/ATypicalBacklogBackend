@@ -56,6 +56,9 @@ dependencies {
     // CSV parsing
     implementation("org.apache.commons:commons-csv:1.14.1")
 
+    // WebP (and extended formats) for ImageIO — required for IGDB covers and browser WebP uploads
+    implementation("com.twelvemonkeys.imageio:imageio-webp:3.12.0")
+
     // Google Calendar API (sync time bookings)
     implementation("com.google.api-client:google-api-client:2.2.0")
     implementation("com.google.apis:google-api-services-calendar:v3-rev20251207-2.0.0")

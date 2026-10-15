@@ -1,11 +1,11 @@
 package at.atypicalbacklog.management.image.controller;
 
 import at.atypicalbacklog.management.image.domain.ImageAspectHint;
+import at.atypicalbacklog.management.image.dto.ImageDeliveryLoadResult;
 import at.atypicalbacklog.management.image.service.ImageDeliveryService;
 
 import org.springframework.core.io.Resource;
 import org.springframework.http.CacheControl;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,10 +34,10 @@ public class ImageDeliveryController {
         @RequestParam(required = false) Boolean thumbnail,
         @RequestParam(required = false) ImageAspectHint aspect
     ) {
-        Resource resource = service.load(imageUid, thumbnail, aspect);
+        ImageDeliveryLoadResult result = service.load(imageUid, thumbnail, aspect);
         return ResponseEntity.ok()
-            .contentType(MediaType.IMAGE_JPEG)
+            .contentType(result.contentType())
             .cacheControl(CacheControl.maxAge(thumbnail != null && Boolean.TRUE.equals(thumbnail) ? 1 : 30, TimeUnit.DAYS).cachePublic())
-            .body(resource);
+            .body(result.resource());
     }
 }

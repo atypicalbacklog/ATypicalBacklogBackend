@@ -4,6 +4,7 @@ import at.atypicalbacklog.management.image.domain.ImageAspectHint;
 import at.atypicalbacklog.management.image.domain.ImageSource;
 import at.atypicalbacklog.management.image.domain.ImageType;
 import at.atypicalbacklog.management.image.dto.AdditionalImageMetadataDto;
+import at.atypicalbacklog.management.image.dto.ImageDeliveryLoadResult;
 import at.atypicalbacklog.management.image.dto.PageResponseDto;
 import at.atypicalbacklog.management.image.dto.UpdateAdditionalImageMetadataRequest;
 import at.atypicalbacklog.management.image.service.AdditionalImageCommandService;
@@ -12,7 +13,6 @@ import at.atypicalbacklog.management.image.service.AdditionalImageQueryService;
 
 import org.springframework.core.io.Resource;
 import org.springframework.http.CacheControl;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -45,14 +45,14 @@ public class AdditionalImageController {
         @RequestParam(required = false) Boolean thumbnail,
         @RequestParam(required = false) ImageAspectHint aspect
     ) {
-        Resource resource = deliveryService.load(imageUid, thumbnail, aspect);
+        ImageDeliveryLoadResult result = deliveryService.load(imageUid, thumbnail, aspect);
         return ResponseEntity.ok()
-            .contentType(MediaType.IMAGE_JPEG)
+            .contentType(result.contentType())
             .cacheControl(CacheControl.maxAge(
                 thumbnail != null && Boolean.TRUE.equals(thumbnail) ? 1 : 30,
                 TimeUnit.DAYS
             ).cachePublic())
-            .body(resource);
+            .body(result.resource());
     }
 
     /** Paginated list of additional images (newest first). */

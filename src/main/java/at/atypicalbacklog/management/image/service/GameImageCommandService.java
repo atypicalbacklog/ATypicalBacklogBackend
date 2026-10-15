@@ -6,6 +6,7 @@ import at.atypicalbacklog.management.game.domain.Game;
 import at.atypicalbacklog.management.game.repository.GameInstanceRepository;
 import at.atypicalbacklog.management.game.repository.GameRepository;
 import at.atypicalbacklog.management.image.FilenameUtils;
+import at.atypicalbacklog.management.image.ImageFormatUtils;
 import at.atypicalbacklog.management.image.domain.GameImage;
 import at.atypicalbacklog.management.image.domain.ImageAspectHint;
 import at.atypicalbacklog.management.image.domain.ImageOwnerType;
@@ -68,25 +69,26 @@ public class GameImageCommandService {
         String uid = UUID.randomUUID().toString();
         String gameName = resolveGameName(ownerType, gameUid, gameInstanceUid, dlcUid);
         String sanitizedGameName = FilenameUtils.sanitizeGameName(gameName);
-        String mimetype = file.getContentType() != null ? file.getContentType() : "image/jpeg";
-        String filename = FilenameUtils.buildImageFilename(gameName, mimetype);
-
-        GameImage image = new GameImage(
-            uid,
-            filename,
-            mimetype,
-            ownerType,
-            gameUid,
-            gameInstanceUid,
-            dlcUid,
-            type,
-            aspectHint,
-            source,
-            false // never primary by default
-        );
 
         try {
             byte[] imageData = file.getInputStream().readAllBytes();
+            String mimetype = ImageFormatUtils.detectMimetype(imageData, file.getContentType());
+            String filename = FilenameUtils.buildImageFilename(gameName, mimetype);
+
+            GameImage image = new GameImage(
+                uid,
+                filename,
+                mimetype,
+                ownerType,
+                gameUid,
+                gameInstanceUid,
+                dlcUid,
+                type,
+                aspectHint,
+                source,
+                false // never primary by default
+            );
+
             try (var originalStream = new ByteArrayInputStream(imageData)) {
                 storage.storeOriginal(uid, originalStream, mimetype, sanitizedGameName);
             }
@@ -94,11 +96,11 @@ public class GameImageCommandService {
                  var thumbnailStream = thumbnails.generateThumbnail(thumbInput)) {
                 storage.storeThumbnail(uid, thumbnailStream, sanitizedGameName, "image/jpeg");
             }
+
+            repository.save(image);
         } catch (Exception e) {
             throw new IllegalStateException("Image processing failed", e);
         }
-
-        repository.save(image);
     }
 
     private String resolveGameName(ImageOwnerType ownerType, String gameUid, String gameInstanceUid, String dlcUid) {
