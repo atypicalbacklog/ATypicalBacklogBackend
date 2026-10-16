@@ -33,7 +33,7 @@ public class GameOverviewQueryService {
         Counts totalCounts = queryTotalCounts(baseSql, params);
 
         String dataSql = "SELECT * FROM (" + baseSql + ") q";
-        dataSql += buildKeysetCondition(req, params);
+        dataSql += " " + buildKeysetCondition(req, params);
         dataSql += buildOrderBy(req);
 
         if (req.pageSize() != null && req.pageSize() > 0) {
