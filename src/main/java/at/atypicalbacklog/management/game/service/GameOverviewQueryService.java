@@ -405,18 +405,20 @@ public class GameOverviewQueryService {
                 sb.append("""
                     AND EXISTS (
                         SELECT 1 FROM game_completion gc
+                        JOIN completion_state cs ON cs.uid = gc.completion_state_uid
                         WHERE gc.game_instance_uid = gi.uid
                           AND gc.dlc_uid IS NULL
-                          AND gc.completion_state_uid IN ('Completed', 'FinishedPlus', 'Finished', 'Postponed', 'Abandoned', 'Played')
+                          AND cs.name IN ('Completed', 'FinishedPlus', 'Finished', 'Postponed', 'Abandoned', 'Played', 'Started', 'In Progress')
                     )
                     """);
             } else if (Boolean.TRUE.equals(req.isUnplayed())) {
                 sb.append("""
                     AND NOT EXISTS (
                         SELECT 1 FROM game_completion gc
+                        JOIN completion_state cs ON cs.uid = gc.completion_state_uid
                         WHERE gc.game_instance_uid = gi.uid
                           AND gc.dlc_uid IS NULL
-                          AND gc.completion_state_uid IN ('Completed', 'FinishedPlus', 'Finished', 'Postponed', 'Abandoned', 'Played')
+                          AND cs.name IN ('Completed', 'FinishedPlus', 'Finished', 'Postponed', 'Abandoned', 'Played', 'Started', 'In Progress')
                     )
                     """);
             }
@@ -513,16 +515,18 @@ public class GameOverviewQueryService {
                 sb.append("""
                     AND EXISTS (
                         SELECT 1 FROM game_completion gc
+                        JOIN completion_state cs ON cs.uid = gc.completion_state_uid
                         WHERE gc.dlc_uid = d.uid
-                          AND gc.completion_state_uid IN ('Completed', 'FinishedPlus', 'Finished', 'Postponed', 'Abandoned', 'Played')
+                          AND cs.name IN ('Completed', 'FinishedPlus', 'Finished', 'Postponed', 'Abandoned', 'Played', 'Started', 'In Progress')
                     )
                     """);
             } else if (Boolean.TRUE.equals(req.isUnplayed())) {
                 sb.append("""
                     AND NOT EXISTS (
                         SELECT 1 FROM game_completion gc
+                        JOIN completion_state cs ON cs.uid = gc.completion_state_uid
                         WHERE gc.dlc_uid = d.uid
-                          AND gc.completion_state_uid IN ('Completed', 'FinishedPlus', 'Finished', 'Postponed', 'Abandoned', 'Played')
+                          AND cs.name IN ('Completed', 'FinishedPlus', 'Finished', 'Postponed', 'Abandoned', 'Played', 'Started', 'In Progress')
                     )
                     """);
             }
