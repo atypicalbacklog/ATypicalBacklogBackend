@@ -32,23 +32,37 @@ public class PublicRandomSTierReviewFeedQueryService {
         PublicInputValidation.requireFeedCount(count);
 
         String sql = """
-            SELECT DISTINCT ON (g.uid)
-              r.uid AS review_uid,
-              r.review_date,
-              r.tier_uid,
-              r.text AS review_text,
-              r.preferred_image_uid,
-              r.presentation_type,
-              pt.uid AS playthrough_uid,
-              pt.game_instance_uid,
-              g.uid AS game_uid
-            FROM review r
-            JOIN tier t ON t.uid = r.tier_uid
-            JOIN playthrough pt ON pt.uid = r.playthrough_uid
-            JOIN game_instance gi ON gi.uid = pt.game_instance_uid
-            JOIN game g ON g.uid = gi.game_uid
-            WHERE t.name = 'S'
-            ORDER BY g.uid, RANDOM()
+            WITH ranked_reviews AS (
+              SELECT
+                r.uid AS review_uid,
+                r.review_date,
+                r.tier_uid,
+                r.text AS review_text,
+                r.preferred_image_uid,
+                r.presentation_type,
+                pt.uid AS playthrough_uid,
+                pt.game_instance_uid,
+                g.uid AS game_uid,
+                ROW_NUMBER() OVER (PARTITION BY g.uid ORDER BY RANDOM()) as rn
+              FROM review r
+              JOIN tier t ON t.uid = r.tier_uid
+              JOIN playthrough pt ON pt.uid = r.playthrough_uid
+              JOIN game_instance gi ON gi.uid = pt.game_instance_uid
+              JOIN game g ON g.uid = gi.game_uid
+              WHERE t.name = 'S'
+            )
+            SELECT
+              review_uid,
+              review_date,
+              tier_uid,
+              review_text,
+              preferred_image_uid,
+              presentation_type,
+              playthrough_uid,
+              game_instance_uid,
+              game_uid
+            FROM ranked_reviews
+            WHERE rn = 1
             LIMIT :count
             """;
 

@@ -120,3 +120,51 @@ Detailed endpoint contracts are documented in:
 
 - `endpoint-contracts.txt`
 
+## Third Party Libraries
+
+This project depends on open-source libraries. Direct runtime dependencies:
+
+| Library | Artifact | Version | License |
+|---------|----------|---------|---------|
+| Spring Boot Web | `spring-boot-starter-web` | 3.3.1 (BOM) | Apache-2.0 |
+| Spring Boot Actuator | `spring-boot-starter-actuator` | 3.3.1 (BOM) | Apache-2.0 |
+| Spring Boot Data JPA | `spring-boot-starter-data-jpa` | 3.3.1 (BOM) | Apache-2.0 |
+| PostgreSQL JDBC | `postgresql` | Spring Boot BOM | BSD-2-Clause |
+| springdoc OpenAPI UI | `springdoc-openapi-starter-webmvc-ui` | 2.5.0 | Apache-2.0 |
+| Apache Commons CSV | `commons-csv` | 1.14.1 | Apache-2.0 |
+| TwelveMonkeys ImageIO WebP | `imageio-webp` | 3.12.0 | BSD-3-Clause |
+| Google API Client | `google-api-client` | 2.2.0 | Apache-2.0 |
+| Google Calendar API | `google-api-services-calendar` | v3-rev20251207-2.0.0 | Apache-2.0 |
+| Google Auth (OAuth2 HTTP) | `google-auth-library-oauth2-http` | 1.25.0 | BSD-3-Clause |
+| ONNX Runtime (Java) | `onnxruntime` | 1.19.2 | MIT |
+| DJL API | `ai.djl:api` | 0.30.0 | Apache-2.0 |
+| DJL Hugging Face Tokenizers | `ai.djl.huggingface:tokenizers` | 0.30.0 | Apache-2.0 |
+
+Spring Boot and other libraries also pull in transitive dependencies at build time.
+
+Full copyright and license texts: **[THIRD_PARTY_NOTICES.txt](THIRD_PARTY_NOTICES.txt)**
+
+## License
+
+MIT License
+
+Copyright (c) 2026 Atypical Backlog
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+

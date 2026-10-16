@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -397,6 +398,30 @@ public class GameOverviewQueryService {
                 )
                 """);
         }
+
+        // Handle isPlayed and isUnplayed filters (ignored if completionStateUids is provided)
+        if (req.completionStateUids() == null || req.completionStateUids().isEmpty()) {
+            if (Boolean.TRUE.equals(req.isPlayed())) {
+                sb.append("""
+                    AND EXISTS (
+                        SELECT 1 FROM game_completion gc
+                        WHERE gc.game_instance_uid = gi.uid
+                          AND gc.dlc_uid IS NULL
+                          AND gc.completion_state_uid IN ('Completed', 'FinishedPlus', 'Finished', 'Postponed', 'Abandoned', 'Played')
+                    )
+                    """);
+            } else if (Boolean.TRUE.equals(req.isUnplayed())) {
+                sb.append("""
+                    AND NOT EXISTS (
+                        SELECT 1 FROM game_completion gc
+                        WHERE gc.game_instance_uid = gi.uid
+                          AND gc.dlc_uid IS NULL
+                          AND gc.completion_state_uid IN ('Completed', 'FinishedPlus', 'Finished', 'Postponed', 'Abandoned', 'Played')
+                    )
+                    """);
+            }
+        }
+
         if (Boolean.TRUE.equals(req.onlyGamesWithDlc())) {
             sb.append("""
                 AND EXISTS (
@@ -481,6 +506,28 @@ public class GameOverviewQueryService {
                 )
                 """);
         }
+
+        // Handle isPlayed and isUnplayed filters for DLC (ignored if completionStateUids is provided)
+        if (req.completionStateUids() == null || req.completionStateUids().isEmpty()) {
+            if (Boolean.TRUE.equals(req.isPlayed())) {
+                sb.append("""
+                    AND EXISTS (
+                        SELECT 1 FROM game_completion gc
+                        WHERE gc.dlc_uid = d.uid
+                          AND gc.completion_state_uid IN ('Completed', 'FinishedPlus', 'Finished', 'Postponed', 'Abandoned', 'Played')
+                    )
+                    """);
+            } else if (Boolean.TRUE.equals(req.isUnplayed())) {
+                sb.append("""
+                    AND NOT EXISTS (
+                        SELECT 1 FROM game_completion gc
+                        WHERE gc.dlc_uid = d.uid
+                          AND gc.completion_state_uid IN ('Completed', 'FinishedPlus', 'Finished', 'Postponed', 'Abandoned', 'Played')
+                    )
+                    """);
+            }
+        }
+
         if (req.playthroughTypeUids() != null && !req.playthroughTypeUids().isEmpty()) {
             sb.append("""
                 AND EXISTS (
