@@ -32,7 +32,7 @@ public class PublicRandomSTierReviewFeedQueryService {
         PublicInputValidation.requireFeedCount(count);
 
         String sql = """
-            SELECT
+            SELECT DISTINCT ON (g.uid)
               r.uid AS review_uid,
               r.review_date,
               r.tier_uid,
@@ -48,7 +48,7 @@ public class PublicRandomSTierReviewFeedQueryService {
             JOIN game_instance gi ON gi.uid = pt.game_instance_uid
             JOIN game g ON g.uid = gi.game_uid
             WHERE t.name = 'S'
-            ORDER BY RANDOM()
+            ORDER BY g.uid, RANDOM()
             LIMIT :count
             """;
 
