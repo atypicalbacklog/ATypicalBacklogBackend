@@ -15,8 +15,8 @@ public record GameOverviewQueryRequest(
     List<String> playthroughTypeUids,  // filter by playthrough type UIDs
     Boolean includeDlc,                // when true, include DLC rows in result
     Boolean onlyGamesWithDlc,          // true: only games with >=1 DLC; false: only games with no DLC; null: no filter
-    Boolean isPlayed,                 // true: only games with instances having completion states: Completed, FinishedPlus, Finished, Postponed, Abandoned, Played
-    Boolean isUnplayed,                // true: only games with NO instances having completion states: Completed, FinishedPlus, Finished, Postponed, Abandoned, Played
+    Boolean isPlayed,                 // true: only games with instances having completion states: Completed, FinishedPlus, Finished, Postponed, Abandoned, Played, Started, In Progress — or a playthrough with time bookings
+    Boolean isUnplayed,                // true: only games with NO instances having completion states: Completed, FinishedPlus, Finished, Postponed, Abandoned, Played, Started, In Progress — and no playthrough with time bookings
 
     SortMode sortMode,
 

@@ -230,11 +230,22 @@ public class GameOverviewQueryService {
 
               COALESCE(gi.creation_date, g.creation_date) AS sort_created,
               COALESCE(gi.release_date, g.first_release_date) AS sort_release,
-              (
-                SELECT MAX(COALESCE(tb.end_time, tb.start_time))
-                FROM time_booking tb
-                JOIN playthrough pt ON pt.uid = tb.playthrough_uid
-                WHERE pt.game_instance_uid = gi.uid
+              COALESCE(
+                GREATEST(
+                  (
+                    SELECT MAX(COALESCE(tb.end_time, tb.start_time))
+                    FROM time_booking tb
+                    JOIN playthrough pt ON pt.uid = tb.playthrough_uid
+                    WHERE pt.game_instance_uid = gi.uid
+                  ),
+                  (
+                    SELECT MAX(GREATEST(gc.finished_date, gc.completed_date))
+                    FROM game_completion gc
+                    WHERE gc.game_instance_uid = gi.uid AND gc.dlc_uid IS NULL
+                  ),
+                  gi.received_date
+                ),
+                COALESCE(gi.release_date, g.first_release_date)
               )                             AS sort_last_played
 
             FROM game g
@@ -324,10 +335,21 @@ public class GameOverviewQueryService {
 
               d.creation_date               AS sort_created,
               COALESCE(gi.release_date, g.first_release_date) AS sort_release,
-              (
-                SELECT MAX(COALESCE(tb.end_time, tb.start_time))
-                FROM time_booking tb
-                WHERE tb.playthrough_uid = d.playthrough_uid
+              COALESCE(
+                GREATEST(
+                  (
+                    SELECT MAX(COALESCE(tb.end_time, tb.start_time))
+                    FROM time_booking tb
+                    WHERE tb.playthrough_uid = d.playthrough_uid
+                  ),
+                  (
+                    SELECT MAX(GREATEST(gc.finished_date, gc.completed_date))
+                    FROM game_completion gc
+                    WHERE gc.dlc_uid = d.uid
+                  ),
+                  COALESCE(d.received_date, gi.received_date)
+                ),
+                COALESCE(d.release_date, gi.release_date, g.first_release_date)
               )                             AS sort_last_played
 
             FROM game g
@@ -400,15 +422,23 @@ public class GameOverviewQueryService {
         }
 
         // Handle isPlayed and isUnplayed filters (ignored if completionStateUids is provided)
+        // A game counts as played when an instance has a qualifying completion state OR any playthrough with time bookings
         if (req.completionStateUids() == null || req.completionStateUids().isEmpty()) {
             if (Boolean.TRUE.equals(req.isPlayed())) {
                 sb.append("""
-                    AND EXISTS (
-                        SELECT 1 FROM game_completion gc
-                        JOIN completion_state cs ON cs.uid = gc.completion_state_uid
-                        WHERE gc.game_instance_uid = gi.uid
-                          AND gc.dlc_uid IS NULL
-                          AND cs.name IN ('Completed', 'FinishedPlus', 'Finished', 'Postponed', 'Abandoned', 'Played', 'Started', 'In Progress')
+                    AND (
+                        EXISTS (
+                            SELECT 1 FROM game_completion gc
+                            JOIN completion_state cs ON cs.uid = gc.completion_state_uid
+                            WHERE gc.game_instance_uid = gi.uid
+                              AND gc.dlc_uid IS NULL
+                              AND cs.name IN ('Completed', 'FinishedPlus', 'Finished', 'Postponed', 'Abandoned', 'Played', 'Started', 'In Progress')
+                        )
+                        OR EXISTS (
+                            SELECT 1 FROM playthrough pt
+                            JOIN time_booking tb ON tb.playthrough_uid = pt.uid
+                            WHERE pt.game_instance_uid = gi.uid
+                        )
                     )
                     """);
             } else if (Boolean.TRUE.equals(req.isUnplayed())) {
@@ -419,6 +449,11 @@ public class GameOverviewQueryService {
                         WHERE gc.game_instance_uid = gi.uid
                           AND gc.dlc_uid IS NULL
                           AND cs.name IN ('Completed', 'FinishedPlus', 'Finished', 'Postponed', 'Abandoned', 'Played', 'Started', 'In Progress')
+                    )
+                    AND NOT EXISTS (
+                        SELECT 1 FROM playthrough pt
+                        JOIN time_booking tb ON tb.playthrough_uid = pt.uid
+                        WHERE pt.game_instance_uid = gi.uid
                     )
                     """);
             }
@@ -510,14 +545,21 @@ public class GameOverviewQueryService {
         }
 
         // Handle isPlayed and isUnplayed filters for DLC (ignored if completionStateUids is provided)
+        // A DLC counts as played when it has a qualifying completion state OR its linked playthrough has time bookings
         if (req.completionStateUids() == null || req.completionStateUids().isEmpty()) {
             if (Boolean.TRUE.equals(req.isPlayed())) {
                 sb.append("""
-                    AND EXISTS (
-                        SELECT 1 FROM game_completion gc
-                        JOIN completion_state cs ON cs.uid = gc.completion_state_uid
-                        WHERE gc.dlc_uid = d.uid
-                          AND cs.name IN ('Completed', 'FinishedPlus', 'Finished', 'Postponed', 'Abandoned', 'Played', 'Started', 'In Progress')
+                    AND (
+                        EXISTS (
+                            SELECT 1 FROM game_completion gc
+                            JOIN completion_state cs ON cs.uid = gc.completion_state_uid
+                            WHERE gc.dlc_uid = d.uid
+                              AND cs.name IN ('Completed', 'FinishedPlus', 'Finished', 'Postponed', 'Abandoned', 'Played', 'Started', 'In Progress')
+                        )
+                        OR EXISTS (
+                            SELECT 1 FROM time_booking tb
+                            WHERE tb.playthrough_uid = d.playthrough_uid
+                        )
                     )
                     """);
             } else if (Boolean.TRUE.equals(req.isUnplayed())) {
@@ -527,6 +569,10 @@ public class GameOverviewQueryService {
                         JOIN completion_state cs ON cs.uid = gc.completion_state_uid
                         WHERE gc.dlc_uid = d.uid
                           AND cs.name IN ('Completed', 'FinishedPlus', 'Finished', 'Postponed', 'Abandoned', 'Played', 'Started', 'In Progress')
+                    )
+                    AND NOT EXISTS (
+                        SELECT 1 FROM time_booking tb
+                        WHERE tb.playthrough_uid = d.playthrough_uid
                     )
                     """);
             }

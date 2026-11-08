@@ -1,7 +1,12 @@
 ================================================================================
 ATYPICAL BACKLOG MANAGEMENT API - ENDPOINT CONTRACTS
 ================================================================================
-Version: 35
+Version: 36
+
+Version history:
+- v36: game-overview (5.1) isPlayed/isUnplayed also treat a playthrough with time bookings as played;
+  LAST_PLAYED_DESC sorts by the latest of last booking, finished/completed date, received date
+  (release date only as fallback when none of those is set)
 Base URL: http://localhost:8080
 API Prefix: /api
 
@@ -458,8 +463,8 @@ Request Body:
   "playthroughTypeUids": [ "string" ] | null,   // optional; filter by playthrough type UIDs
   "includeDlc": true | false | null,       // optional; when true, include DLC as own records
   "onlyGamesWithDlc": true | false | null, // optional; when true, only games that have DLC
-  "isPlayed": true | false | null,    // optional; when true, only games with instances having completion states: Completed, FinishedPlus, Finished, Postponed, Abandoned, Played
-  "isUnplayed": true | false | null,  // optional; when true, only games with NO instances having completion states: Completed, FinishedPlus, Finished, Postponed, Abandoned, Played
+  "isPlayed": true | false | null,    // optional; when true, only games with instances having completion states: Completed, FinishedPlus, Finished, Postponed, Abandoned, Played (etc.) OR a playthrough with time bookings
+  "isUnplayed": true | false | null,  // optional; when true, only games with NO instances having completion states: Completed, FinishedPlus, Finished, Postponed, Abandoned, Played (etc.) and no playthrough with time bookings
   "sortMode": "NAME_ASC" | "NAME_DESC" | "PLAYTIME_DESC" | "LAST_PLAYED_DESC" | "NEWEST_CREATED" | "RELEASE_DATE",
 
   "pageSize": 1..500 | null,               // optional; limits returned rows (keyset page size)
@@ -535,7 +540,13 @@ Notes:
 - Covers are separate: gameCoverImageUid (game), instanceCoverImageUid (instance), dlcCoverImageUid (DLC when isDlc). Client may choose which to display (e.g. prefer dlcCoverImageUid when isDlc, else instanceCoverImageUid, else gameCoverImageUid).
 - searchText filters on game name, instance name, and (for DLC rows) DLC name
 - Keyset pagination is optional and currently supported for sortMode=NAME_ASC.
-- isPlayed and isUnplayed filters use completion states: Completed, FinishedPlus, Finished, Postponed, Abandoned, Played
+- LAST_PLAYED_DESC sorts per row by the latest of: last time booking (end_time, else start_time; date+time),
+  game_completion finished_date/completed_date (latest completion), received_date;
+  release date is only a fallback when none of those three is set
+  (instance release_date else game first_release_date; DLC rows use DLC playthrough/completion/received_date/release_date
+  with instance/game fallbacks)
+- isPlayed and isUnplayed filters use completion states: Completed, FinishedPlus, Finished, Postponed, Abandoned, Played, Started, In Progress;
+  a game/DLC also counts as played when one of its playthroughs has at least one time booking
 - If completionStateUids is provided, isPlayed and isUnplayed are ignored
 - If both isPlayed and isUnplayed are true, only isPlayed is applied (isUnplayed is ignored)
 - null and false values for isPlayed/isUnplayed are treated the same (no filter applied)
